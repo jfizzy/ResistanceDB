@@ -1,2 +1,2 @@
-# ResistDB
-ResistDB Project
+# ResistanceDB
+ResistanceDB Project
