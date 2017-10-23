@@ -1,6 +1,9 @@
 # ResistanceDB
 ResistanceDB Project
 
+## :two_men_holding_hands: Authors ##
+Tyrone Lagore and James MacIsaac
+
 ## :arrow_backward: Prologue ##
 We will update this readme as the project progresses with more technical information about the project and how to run it.
 
