@@ -53,13 +53,26 @@ class Peak:
                 #divide by larger intensity to see if it is greater than or
                 #equal to the required disparity - if so it is valid
                 ratio = smaller_intensity / larger_intensity
-                if ratio >= disparity:
+                if (1 - ratio) > disparity:
                     return True
 
         return False
                     
 
     ### Getters and Setters ###
+    @property
+    def category(self):
+        """ getter for intensities """
+        return self._category
+
+    @category.setter
+    def category(self, value):
+        """ setter for intensities """
+        if not isinstance(value, str):
+            raise PeakException("Cannot assign a non-list value to property intensities")
+
+        self._category = value
+
     @property
     def intensities(self):
         """ getter for intensities """
@@ -71,7 +84,7 @@ class Peak:
         if not isinstance(value, list):
             raise PeakException("Cannot assign a non-list value to property intensities")
 
-        self._parent = value
+        self._intensities = value
 
     @property
     def parent(self):
@@ -113,7 +126,7 @@ class Peak:
         self._med_rt = value
 
     @property
-    def rd_diff(self):
+    def rt_diff(self):
         """ getter for rt_diff """
         return self._rt_diff
 
