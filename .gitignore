@@ -85,6 +85,7 @@ celerybeat-schedule
 # virtualenv
 .venv
 venv/
+rdb_venv/
 ENV/
 
 # Spyder project settings
@@ -148,3 +149,6 @@ flycheck_*.el
 
 # directory configuration
 .dir-locals.el
+
+#vs code config
+.vscode/
