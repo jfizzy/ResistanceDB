@@ -8,8 +8,11 @@ class Config:
     MAXRTDIFF = 0.0
     MZDIFF = 3
 
+    def __init__(self, cfgfile):
+        self.cfgfile = cfgfile
+
     def read_config(self):
-        with open('.cfg') as f:
+        with open(self.cfgfile) as f:
             lines = f.readlines()
         if lines:
             for line in lines:
