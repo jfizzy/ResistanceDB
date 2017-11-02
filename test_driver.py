@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.6
 from leo.fileparser import fileparser
 from leo.config import config
 
