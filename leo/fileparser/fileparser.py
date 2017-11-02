@@ -34,7 +34,7 @@ class FileParser:
                 # headers - might be important later
                 # they are the name of the mzXML sample file
                 row = reader.__next__()
-                
+
                 for row in reader:
                     #holds the intensities
                     intensities = []
@@ -50,13 +50,10 @@ class FileParser:
                         for col in range(24, len(row)):
                             intensities.append(float(row[col]))
 
-                        #print("med_mz: {} med_rt: {} compound: {} category: {} rt_diff: {} parent: {}".format(\
-                        #    med_mz, med_rt, compound, category, rt_diff, parent))
-                        #print(intensities)
-
-                        peak = peak_module.Peak(med_mz,med_rt,compound,category,rt_diff,parent,intensities)
+                        peak = peak_module.Peak(med_mz, med_rt, compound, \
+                            category, rt_diff, parent, intensities)
                         peaks.append(peak)
-                
+
         except IndexError as ex:
             print("Error reading in csv file {}".format(str(ex)))
             return None
