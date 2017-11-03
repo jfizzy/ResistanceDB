@@ -16,7 +16,7 @@ class Peak:
         intensities: list of intensities found in samples
         """
 
-        if not isinstance(intensities, list):
+        if not isinstance(intensities, dict):
             raise PeakException("Intensities must be a list")
 
         self._med_mz = med_mz
@@ -32,14 +32,15 @@ class Peak:
             retention time is within the value max_rt_dif """
         return abs(max_rt_dif) > abs(self._rt_diff)
 
-    def verify_instensity_dispartiy(self, disparity):
+        ## Needs to be rewritten
+    #def verify_instensity_dispartiy(self, disparity):
         """
             verifies that the instensities of the peak have a disparity amongst themselves of
             given parameter 'disparity'. Disparity is expected to be a value between 0 and 1
 
             Current assumption is that disparity only needs to be found amongst one peak or another
         """
-
+    """
         for i in range(0, len(self.intensities)):
             for j in range(i+1, len(self.intensities)):
                 #find smaller intensity
@@ -57,7 +58,10 @@ class Peak:
                     return True
 
         return False
-                    
+    """
+    def __str__(self):
+        return repr("med_mz: {} med_rt: {} compound: {} category: {} rt_diff: {} parent: {} intensities {}".format(\
+                self._med_mz, self._med_rt, self._compound, self._category, self._rt_diff, self._parent, self._intensities))
 
     ### Getters and Setters ###
     @property

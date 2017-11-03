@@ -43,9 +43,11 @@ class FileParser:
                 for idx, col_name in enumerate(col_names):
                     self._colnames[idx] = self.strip_col_name(col_name)
 
+                print(self._colnames)
+
                 for row in reader:
                     #holds the intensities
-                    intensities = []
+                    intensities = {}
 
                     # ensure there is actual data in the peak file
                     if len(row) > self.DATA_OFFSET:
@@ -55,14 +57,24 @@ class FileParser:
                         category = str(row[10])
                         rt_diff = float(row[12])
                         parent = float(row[14])
-
-
+                        
+                        #for all the data rows
                         for col in range(24, len(row)):
-                            intensities.append(float(row[col]))
+                            cname = self._colnames[col - self.DATA_OFFSET][0]
+                            time = self._colnames[col - self.DATA_OFFSET][1]
 
+                            #if we have not seen this test, add as first value in test
+                            if cname in intensities:
+                                intensities[cname][time] = float(row[col])
+                            #else add to tests
+                            else:
+                                intensities[cname] = {time: float(row[col])}
+                        
                         peak = peak_module.Peak(med_mz, med_rt, compound, \
                             category, rt_diff, parent, intensities)
                         peaks.append(peak)
+
+                print(peaks[0])
 
         except IndexError as ex:
             raise ex
@@ -96,8 +108,6 @@ class FileParser:
 
         return (sample_name, time)
 
-
-
     def write_peaks_csv(self, peaks, filename):
         """ Writes a list of peaks to csv file """
         if isinstance(peaks, list):
@@ -106,9 +116,25 @@ class FileParser:
                     ## should add a regex to check filename
                     with open(filename, "w+") as csvfile:
                         csvwriter = csv.writer(csvfile, delimiter="\t", quotechar="\"")
+                        row = ["medMz", "medRt", "compound", "category", "rt_diff", "parent"]
+
+                        #first write the columns as they appear in peaks
+                        for colname, tests in peaks[0].intensities.items():
+                            for test_time, _ in tests.items():
+                                row.append(colname + "_" + test_time)
+
+                        csvwriter.writerow(row)
+
                         for peak in peaks:
                             row = [str(peak.med_mz), str(peak.med_rt), str(peak.compound), str(peak.category), str(peak.rt_diff), str(peak.parent)]
-                            row = row + [str(intensity) for intensity in peak.intensities]
+                            
+                            intensities = []
+
+                            for _, tests in peak.intensities.items():
+                                for _, value in tests.items():
+                                    intensities.append(value)
+
+                            row = row + [str(intensity) for intensity in intensities]
                             
                             csvwriter.writerow(row)
 
