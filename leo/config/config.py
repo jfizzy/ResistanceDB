@@ -6,7 +6,6 @@ class Config:
     COMPOUNDSFILE = ''
     MINMZ = 0
     MAXRTDIFF = 0.0
-    MZDIFF = 3
     MZRATIO = 0.3
 
     def __init__(self, cfgfile):
@@ -36,10 +35,10 @@ class Config:
                     # maximum Retention time differential
                     #print('rt differential line: ['+line.split('\n')[0]+']')
                     self.set_maxrtdiff(line.split('=')[1].split('\n')[0])
-                elif re.match('^MZDIFF=((0.[0-9]+)|0|1)$', line):
-                    # intensity differential %
+                elif re.match('^MZRATIO=((0.[0-9]+)|0|1)$', line):
+                    # intensity ratio
                     #print('intensity differential line: ['+line.split('\n')[0]+']')
-                    self.set_mzdiff(line.split('=')[1].split('\n')[0])
+                    self.set_mzratio(line.split('=')[1].split('\n')[0])
                 else:
                     #invalid line
                     #print('invalid line: ['+line.split('\n')[0]+']')
@@ -61,9 +60,9 @@ class Config:
         self.MAXRTDIFF = float(line)
         print('set maxrtdiff to {}'.format(self.MAXRTDIFF))
 
-    def set_mzdiff(self, line):
-        self.MZDIFF = float(line)
-        print('set mzdiff to {}'.format(self.MZDIFF))
+    def set_mzratio(self, line):
+        self.MZRATIO= float(line)
+        print('set mzratio to {}'.format(self.MZRATIO))
 
     def format_e(self, n):
         a = '%E' % n
