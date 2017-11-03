@@ -2,6 +2,7 @@
 #import traceback
 #import sys
 import csv
+import re
 from leo.peaks import peak as peak_module
 
 class FileParser:
@@ -9,6 +10,9 @@ class FileParser:
 
     def __init__(self):
         """ Constructor for filereader"""
+        self.DATA_OFFSET = 24
+        self._intensities = {}
+        self._colnames = {}
 
     # parse a peaks file
     #   fields we are interested in (0 aligned):
@@ -34,18 +38,24 @@ class FileParser:
                 # headers - might be important later
                 # they are the name of the mzXML sample file
                 row = reader.__next__()
+                col_names = [str(s).lower() for s in row[self.DATA_OFFSET:] if s != ""]
+
+                for idx, col_name in enumerate(col_names):
+                    self._colnames[idx] = self.strip_col_name(col_name)
 
                 for row in reader:
                     #holds the intensities
                     intensities = []
 
-                    if len(row) > 24:
+                    # ensure there is actual data in the peak file
+                    if len(row) > self.DATA_OFFSET:
                         med_mz = float(row[4])
                         med_rt = float(row[5])
                         compound = str(row[8])
                         category = str(row[10])
                         rt_diff = float(row[12])
                         parent = float(row[14])
+
 
                         for col in range(24, len(row)):
                             intensities.append(float(row[col]))
@@ -55,10 +65,38 @@ class FileParser:
                         peaks.append(peak)
 
         except IndexError as ex:
+            raise ex
             print("Error reading in csv file {}".format(str(ex)))
             return None
 
         return peaks
+
+    def strip_col_name(self, col_name):
+        """ returns the column name and time of T-value """
+        time_re = r"t[0-9]"
+        findstr = "hilicneg15_"
+        index = col_name.find(findstr, 0, len(col_name))
+
+        if index != -1:
+            cutoff = index + len(findstr)
+            sample_name = col_name[cutoff:]
+            sample_name = sample_name.replace(".mzxml", "")
+            times = re.findall(time_re, sample_name)
+            if times:
+                time = str(times[0])
+            else:
+                time = "mid"
+
+            #remove t# from end of sample name
+            time_cutoff = sample_name.find(time, 0, len(sample_name))
+            if index != -1:
+                sample_name = sample_name[0:time_cutoff-1]
+        else:
+            return (-1, None)
+
+        return (sample_name, time)
+
+
 
     def write_peaks_csv(self, peaks, filename):
         """ Writes a list of peaks to csv file """
