@@ -40,10 +40,10 @@ class FileParser:
                 row = reader.__next__()
                 col_names = [str(s).lower() for s in row[self.DATA_OFFSET:] if s != ""]
 
+                # store column names in format {index: (name, time)}
+                # note that index is an offset into the data index (24), starting from 0. 
                 for idx, col_name in enumerate(col_names):
                     self._colnames[idx] = self.strip_col_name(col_name)
-
-                print(self._colnames)
 
                 for row in reader:
                     #holds the intensities
