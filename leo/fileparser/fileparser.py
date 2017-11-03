@@ -57,7 +57,7 @@ class FileParser:
                         category = str(row[10])
                         rt_diff = float(row[12])
                         parent = float(row[14])
-                        
+
                         #for all the data rows
                         for col in range(24, len(row)):
                             cname = self._colnames[col - self.DATA_OFFSET][0]
@@ -69,16 +69,14 @@ class FileParser:
                             #else add to tests
                             else:
                                 intensities[cname] = {time: float(row[col])}
-                        
+
                         peak = peak_module.Peak(med_mz, med_rt, compound, \
                             category, rt_diff, parent, intensities)
                         peaks.append(peak)
 
-                print(peaks[0])
 
         except IndexError as ex:
-            raise ex
-            print("Error reading in csv file {}".format(str(ex)))
+            print("Error reading in csv file. Error message: {}".format(str(ex)))
             return None
 
         return peaks

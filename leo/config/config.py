@@ -7,6 +7,7 @@ class Config:
     MINMZ = 0
     MAXRTDIFF = 0.0
     MZDIFF = 3
+    MZRATIO = 0.3
 
     def __init__(self, cfgfile):
         self.cfgfile = cfgfile
