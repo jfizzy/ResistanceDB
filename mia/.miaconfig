@@ -1,0 +1,6 @@
+SRC_DIR=/this/is/a/dir
+SRC_DIR=/this/is/another
+DST_DIR=/this/is/a/dst/dir
+CONVERTER=/here/is/the/location.exe
+CONVERTER_FLAGS=--this -is -An -arg
+INTERIM=/this/is/an/interim/dir
