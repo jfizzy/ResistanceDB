@@ -91,17 +91,6 @@ class FileMover:
                 print(">>> Moving {} -> {}".format(f[0], f[1]))
                 os.rename(f[0], f[1])
 
-            #if files:
-                #files = [os.path.join(file for file in files[0][2] if re.findall(self._file_ext, file)]
-                #print(files)
-                
-
-           # else:
-            #    return
-
-            #files = [file[2] for file in os.walk(source)]#if re.findall(self._file_ext, file[2])]# if re.findall(self._file_ext, file)]
-            #files = [file for file in list(itertools.chain.from_iterable(files)) if re.findall(self._file_ext, file)]
-            #for file in files:
         print(">>> FileMover done move.\n")
 
 
