@@ -1,5 +1,15 @@
 import os
 import shutil
+
+
+def main():
+    """ main loop for mia program """
+
+
+if __name__ == "__main__":
+    main()
+
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 dest = os.environ.get('DEST_DIR')
