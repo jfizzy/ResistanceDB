@@ -56,7 +56,7 @@ def main():
     if not checkConfig(config):
         exit(0)
 
-    logger.info("Initializing with config parameters:\n{}".format(config))
+    logger.info("Mia starting up. Initializing with config parameters:\n{}".format(config))
 
     try:
         while True:
@@ -64,6 +64,8 @@ def main():
             time.sleep(config.INTERVAL)
     except Exception as ex:
         logger.critical("Mia has exited with error: {} ".format(ex))
+
+    logger.info("Exitting.")
     
 if __name__ == "__main__":
     main()
