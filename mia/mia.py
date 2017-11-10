@@ -3,6 +3,7 @@ import os
 from file_mover import FileMover, FileMoverException
 from fileparser import FileParser, FileParserException
 from config import Config
+import time
 
 logger = EZLogger(logger_name="MiaLogger", log_filename="mia_log.log", filesize=10*1024*1024, backupCount=5, filemode='w')
 
@@ -36,24 +37,35 @@ def checkConfig(config):
 
     return valid
 
-
-def main():
-    """ main loop for mia program """
-    config = Config(".miaconfig")
-
-    if not checkConfig(config):
-        exit(0)
-
+def do_work():
     try: 
-        mover = FileMover(config.SRC_DIRS, config.INTERIM, config.FILE_EXT, None)
-        mover.move_files()
+        print("interval!")
+        #mover = FileMover(config.SRC_DIRS, config.INTERIM, config.FILE_EXT, None)
+        #mover.move_files()
     
-        parser = FileParser(config.INTERIM, config.DST_DIR, config.FILE_EXT, "mzXML", config.CONVERTER, config.CONVERTER_FLAGS)
-        parser.do_action()
+        #parser = FileParser(config.INTERIM, config.DST_DIR, config.FILE_EXT, "mzXML", config.CONVERTER, config.CONVERTER_FLAGS)
+        #parser.do_action()
     except FileMoverException as ex:
         logger.error(ex)
     except FileParserException as ex:
         logger.error(ex)
+
+
+def main():
+    """ main loop for mia program """
+    config = Config(".miaconfig", logger)
+
+    if not checkConfig(config):
+        exit(0)
+
+    logger.info("Initializing with config parameters:\n{}".format(config))
+
+    while True:
+        do_work()
+        time.sleep(config.INTERVAL)
+    
+
+    
 
 if __name__ == "__main__":
     main()
