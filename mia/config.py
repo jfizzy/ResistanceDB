@@ -78,8 +78,3 @@ class Config:
             self.INTERIM = line
             return
         print('could not resolve the interim directory')
-
-
-if __name__ == "__main__":
-    c = Config('.miaconfig')
-    c.read_config()
