@@ -47,7 +47,7 @@ class Config:
                 elif re.match('^INTERIM=.+$', line):
                     # temporary folder
                     self.set_interim_dir(line.split('=')[1])
-                elif re.match('^INTERVAL=.+$', line):
+                elif re.match('^INTERVAL=[0-9]+$', line):
                     # temporary folder
                     self.set_interval(line.split('=')[1])
     def set_interval(self, line):

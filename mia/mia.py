@@ -64,8 +64,5 @@ def main():
         do_work()
         time.sleep(config.INTERVAL)
     
-
-    
-
 if __name__ == "__main__":
     main()
