@@ -1,4 +1,5 @@
 SRC_DIR=C:\Users\tyron\school\project\Raw Data
+SRC_DIR=C:\Users\tyron\school\project\Src2
 DST_DIR=C:/Users/tyron/school/project/Dest
 CONVERTER=move #C:\Users\tyron\school\project\Raw Data\Converter\ReAdW.exe
 CONVERTER_FLAGS=
