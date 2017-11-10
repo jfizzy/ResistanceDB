@@ -8,7 +8,7 @@ class FileParser:
         performs the action in format [action] [flags] [src file] [dest file]
      """
 
-    def __init__(self, src, dest, file_ext, end_ext, action, flags):
+    def __init__(self, src, dest, file_ext, end_ext, action, flags, logger):
         """ constructor
             src: Directory where files are
             dest: Directory to store results
@@ -24,14 +24,16 @@ class FileParser:
         self._end_ext = end_ext
         self._action = action
         self._flags = flags
+        self._logger = logger
 
         #assumed to be a program 
         self._action = action
 
         #if not os.path.exists(self._action):
         #    raise FileParserException("Action file not found.")
-        
-        print(self)
+    
+        self._logger.info("FileParser initialized with arguments:")
+        self._logger.info(self)
 
     def do_action(self):
         ''' '''
@@ -39,7 +41,7 @@ class FileParser:
 
         for file in good_files:
             command = "{} {} {} {}".format(self._action, file[0], file[1], ' '.join(self._flags))
-            print("{}".format(command))
+            self._logger.info("Running command: {}".format(command))
             result = subprocess.call(command, shell=True)
 
     def __str__(self):

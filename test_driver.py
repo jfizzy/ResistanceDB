@@ -9,6 +9,9 @@ def main():
     #fr = FileReader("element_weights.csv")
     pp = peakparser.PeakParser()
     peaks = pp.parse_peaks_file("files/peaks/peaks.tab")
+    if peaks:
+        print("Sample peak: ")
+        print(peaks[0])
     pp.write_peaks_csv(peaks, "test.csv")
     #filename = "../../files/known_markers/2017_05_10RG_HILIC15-Neg_MSMLS-List.csv"
     #fr.parseKM(filename)
