@@ -3,6 +3,7 @@ import os
 import sys
 import re
 from glob import glob
+import fileutil
 import itertools
 
 def eprint(*args, **kwargs):
@@ -11,8 +12,10 @@ def eprint(*args, **kwargs):
 
 class FileMover:
     """ Moves files from source to destination of type file_ext """
-    def __init__(self, src, dest, file_ext):
-        """ Constructor for FileMover type """
+    def __init__(self, src, dest, file_ext, end_file_ext):
+        """ Constructor for FileMover type 
+            end_file_ext is optional
+        """
         self._source_dirs = src
 
         if not isinstance(self._source_dirs, list):
@@ -24,13 +27,10 @@ class FileMover:
         self._dest_dir = dest
         self._file_ext = file_ext
 
-        if not self._file_ext.startswith('*.'):
-            if '.' in self._file_ext:
-                re.sub(".", ".*.", self._file_ext)
-            elif '*' in self._file_ext:
-                re.sub('\*', ".*.", self._file_ext)
-            else:
-                self._file_ext = ".*." + self._file_ext
+        if not end_file_ext:
+            self._end_file_ext = file_ext
+        else:
+            self._end_file_ext = end_file_ext
 
         self.check_dirs_exist()
 
@@ -66,8 +66,16 @@ class FileMover:
 
     def move_files(self):
         """ does file move """
+
+        if self._source_dirs:
+            print()
+            print(">>> FileMover: moving files from {} director{}".format(len(self._source_dirs), \
+                'ies' if len(self._source_dirs) > 1 else 'y'))
+
         for source in self._source_dirs:
+            print(">>> Directory: {}".format(source))
             #os.walk returns a list of 3-tuples in the form (directory, [directories in directory], [files in directory])
+            '''
             directory_files = [f for f in os.walk(source)]
             good_files = []
             for directory_tuple in directory_files:
@@ -75,9 +83,12 @@ class FileMover:
                     if re.findall(self._file_ext, f):
                         # if the file has the extension, add to good_file list which is a tuple of (current directory, destination directory)
                         good_files.append((os.path.join(directory_tuple[0], f), os.path.join(self._dest_dir, f)))
+            '''
+            good_files = fileutil.get_files_by_ext(source, self._dest_dir, self._file_ext, self._end_file_ext)
 
             #print(good_files)
             for f in good_files:
+                print(">>> Moving {} -> {}".format(f[0], f[1]))
                 os.rename(f[0], f[1])
 
             #if files:
@@ -91,6 +102,7 @@ class FileMover:
             #files = [file[2] for file in os.walk(source)]#if re.findall(self._file_ext, file[2])]# if re.findall(self._file_ext, file)]
             #files = [file for file in list(itertools.chain.from_iterable(files)) if re.findall(self._file_ext, file)]
             #for file in files:
+        print(">>> FileMover done move.\n")
 
 
 class FileMoverException(Exception):

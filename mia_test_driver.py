@@ -1,5 +1,5 @@
 #!/usr/bin/env python3.6
-from mia.FileMover import FileMover
+from mia.file_mover import FileMover
 
 def main():
     fm = FileMover("C:\\Users\\tyron\\school\\project\\Raw Data", \

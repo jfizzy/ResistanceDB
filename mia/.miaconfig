@@ -1,6 +1,6 @@
-SRC_DIR=/this/is/a/dir
-SRC_DIR=/this/is/another
-DST_DIR=/this/is/a/dst/dir
-CONVERTER=/here/is/the/location.exe
-CONVERTER_FLAGS=--this -is -An -arg
-INTERIM=/this/is/an/interim/dir
+SRC_DIR=C:\Users\tyron\school\project\Raw Data
+DST_DIR=C:/Users/tyron/school/project/Dest
+CONVERTER=move #C:\Users\tyron\school\project\Raw Data\Converter\ReAdW.exe
+CONVERTER_FLAGS=
+INTERIM=C:/Users/tyron/school/project/Interim
+FILE_EXT=raw
