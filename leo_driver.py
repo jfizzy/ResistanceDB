@@ -10,6 +10,7 @@ def main():
         print("Sample peak: ")
         print(peaks[0])
     pp.write_peaks_csv(peaks, "test.csv")
+    pp.write_condensed_csv(peaks, "condensed.csv")
 
 if __name__ == "__main__":
     main()
