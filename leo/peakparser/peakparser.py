@@ -125,6 +125,7 @@ class PeakParser:
             if peaks and isinstance(peaks[0], peak_module.Peak):
                 with open(filename, "w+") as csvfile:
                     csvwriter = csv.writer(csvfile, delimiter="\t", quotechar="\"")
+                    # write headers
                     row = ["medMz", "medRt", "compound", "category", "rt_diff", "parent"]
 
                     for colname, _ in peaks[0].intensities.items():

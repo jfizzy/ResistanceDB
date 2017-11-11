@@ -50,15 +50,10 @@ class Peak:
                         previous_value = value
                     else:
                         #ensure intensities are above min_mz
-                        if previous_value > min_mz or value > min_mz:
-                            #if max value is 0, both are 0 - no change.
+                        if previous_value >= min_mz or value >= min_mz:
+                            #if max value is 0, both are 0 - no change / avoid divide by 0.
                             if max(previous_value, value) == 0:
                                 continue
-                            # if min value is 0 and max value is not 0, 100% change - good sample
-                            elif min(previous_value, value) == 0 and max(previous_value, value) != 0:
-                                this_dif = 1.0
-                                good_intensities = True
-                                break
                             # else find ratio between two to find amount of change
                             else:
                                 this_dif = 1 - (min(previous_value, value) / max(previous_value, value))
