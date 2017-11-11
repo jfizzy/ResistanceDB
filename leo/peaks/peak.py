@@ -33,13 +33,42 @@ class Peak:
         return abs(max_rt_dif) > abs(self._rt_diff)
 
         ## Needs to be rewritten
-    #def verify_instensity_dispartiy(self, disparity):
+    def verify_instensity_dispartiy(self, ratio, min_mz):
         """
-            verifies that the instensities of the peak have a disparity amongst themselves of
-            given parameter 'disparity'. Disparity is expected to be a value between 0 and 1
+            verifies that the instensities of the peak have a ratio amongst themselves of
+            given parameter 'ratio'. ratio is expected to be a value between 0 and 1
+        """
+        good_intensities = False
 
-            Current assumption is that disparity only needs to be found amongst one peak or another
-        """
+        for organism, _ in self._intensities.items():
+            if len(self._intensities[ogranism]) > 1:
+                previous_value = None
+
+                for time, value in self._intensities[ogranism].items():
+                    if not previous_value: 
+                        #this is our first iteration, previous value has not been set
+                        previous_value = value
+                    else:
+                        #ensure intensities are above min_mz
+                        if previous_value > min_mz or value > min_mz:
+                            #if max value is 0, both are 0 - no change.
+                            if max(previous_value, value) == 0:
+                                continue
+                            # if min value is 0 and max value is not 0, 100% change - good sample
+                            elif min(previous_value, value) == 0 and max(previous_value, value) != 0:
+                                this_dif = 1.0
+                                good_intensities = True
+                                break
+                            # else find ratio between two to find amount of change
+                            else:
+                                this_dif = min(previous_value, value) / max(previous_value, value)
+                                #if the ratio between two tests is greater than or equal to ratio passed in - good sample
+                                if this_dif >= ratio:
+                                    good_intensities = True
+                                    break
+
+        return good_intensities
+
     """
         for i in range(0, len(self.intensities)):
             for j in range(i+1, len(self.intensities)):

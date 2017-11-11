@@ -63,6 +63,10 @@ class PeakParser:
                             cname = self._colnames[col - self.DATA_OFFSET][0]
                             time = self._colnames[col - self.DATA_OFFSET][1]
 
+                            #don't include blank samples
+                            if "blank" in cname:
+                                continue
+                            
                             #if we have not seen this test, add as first value in test
                             if cname in intensities:
                                 intensities[cname][time] = float(row[col])
@@ -83,7 +87,7 @@ class PeakParser:
 
     def strip_col_name(self, col_name):
         """ returns the column name and time of T-value """
-        time_re = r"t[0-9]"
+        time_re = r"t[0-9]+"
         findstr = "hilicneg15_"
         index = col_name.find(findstr, 0, len(col_name))
 
@@ -106,6 +110,16 @@ class PeakParser:
 
         return (sample_name, time)
 
+    def clean_peaks(self, peaks, max_rt_diff, ratio):
+        """ """
+        bad_peaks = []
+        for peak in peaks:
+            if not peak.verify_rt_diff(max_rt_diff):
+                bad_peaks.append(peak)
+                continue
+
+            
+
     def write_peaks_csv(self, peaks, filename):
         """ Writes a list of peaks to csv file """
         if isinstance(peaks, list):
@@ -121,6 +135,7 @@ class PeakParser:
                             for test_time, _ in tests.items():
                                 row.append(colname + "_" + test_time)
 
+                        
                         csvwriter.writerow(row)
 
                         for peak in peaks:
@@ -133,7 +148,7 @@ class PeakParser:
                                     intensities.append(value)
 
                             row = row + [str(intensity) for intensity in intensities]
-                            
+                            #print(row)
                             csvwriter.writerow(row)
 
                 except Exception as ex:
