@@ -8,7 +8,8 @@ def main():
     #let child elements resize
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-    MainApplication(root).grid(sticky="nesw")
+    mw = MainApplication(root)
+    mw.grid(sticky="nesw")
 
     root.winfo_toplevel().title("MIA")
     root.update()
@@ -27,9 +28,11 @@ def main():
     root.geometry('%dx%d+%d+%d' % (w,h,x,y))
     root.resizable(False, False)
 
-    root.iconbitmap('39567a-cool-24.ico')
+    root.iconbitmap('static/39567a-cool-24.ico')
     root.iconify()
     root.deiconify()
+
+    root.after(50, mw.loaded())
     root.mainloop()
 
 if __name__ == "__main__":

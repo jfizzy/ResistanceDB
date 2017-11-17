@@ -105,6 +105,25 @@ class SettingsFrame(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.initialize()
 
+    def update_config(self, config):
+        #cannot for the life of my figure out why this isn't updating
+        self.dst_field.delete("0.0", END)
+        self.dst_field.insert("0.0", str(config.DST_DIR))
+        #self.dst_field.insert("0.0", "WHAT THE FUCK")
+        #messagebox.askyesno("FUCK?", config.DST_DIR)
+
+    def collect_config(self, config):
+        #butts
+        dst = self.dst_field.get("1.0", END)
+        exe = self.exe_field.get("1.0", END)
+        src = self.src_list.get(0, END)
+        interval = self.interval
+        ext = 'raw'
+        interim = ''
+        flags = '--compress --mzXML'
+
+        config.set_config(src, dst, exe, flags, interim, ext, interval)
+
     def pick_dst_btn_clicked(self):
         """ """
         folder_name = tkfd.askdirectory()
@@ -121,6 +140,7 @@ class SettingsFrame(tk.Frame):
     def interval_val_changed(self, value):
         """ """
         ## set val in settings
+        self.interval = value
         print(value)
 
     def parallelize_checked(self):
@@ -240,6 +260,8 @@ class SettingsFrame(tk.Frame):
         ###end pick desitnation section ###
 
         ### start interval section ###
+        self.interval = 5
+
         self.interval_lbl = tk.Label(self, text="Transfer Interval (Minutes)")
         self.interval_lbl.configure(background=self["bg"])
         self.interval_lbl.grid(row=7, column=0, columnspan=2, padx=20, pady=0, sticky="w")
@@ -254,7 +276,6 @@ class SettingsFrame(tk.Frame):
 
         self.parallelize = tk.IntVar()
 
-
         self.parallel_lbl = tk.Label(self.parallel_frame, text="Parallelize")
         self.parallel_lbl.grid(row=0, column=0, padx=(0,10))
 
@@ -268,41 +289,16 @@ class Controls(tk.Frame):
         self.parent = parent
         self.initialize()
 
-    def stop_mia(self):
-        """ """
-        self.stop_btn.configure(state="disabled")
-        self.restart_btn.configure(state="disabled")
-        self.parent.update_status("Just as I was ... learning ... to love.... (shutting down)")
-        #do mia stop
-        self.start_btn.configure(state="normal")
-
-    def start_mia(self):
-        """ """
-        self.start_btn.configure(state="disabled")
-        #do mia start
-        #read new config variables and start up
-        self.parent.update_status("Booting up!")
-        self.stop_btn.configure(state="normal")
-        self.restart_btn.configure(state="normal")
-
-    def restart_mia(self):
-        """ """
-        self.parent.update_status("Restarting!")
-        #do mia restart
-        #read new config variables
-        #could probably just call start then stop
-
     def initialize(self):
         ### default to disabled, enable when stop is pressed ###
-        self.start_btn = tk.Button(
-            self, text="Start Mia", width=15, command=self.start_mia,
-        )
-
         self.stop_btn = tk.Button(
-            self, text="Stop Mia", width=15, command=self.stop_mia, state="disabled"
+            self, text="Stop Mia", width=15, command=self.parent.start_mia, state="disabled"
         )
         self.restart_btn = tk.Button(
-            self, text="Restart Mia", width=15, command=self.restart_mia, state="disabled"
+            self, text="Restart Mia", width=15, command=self.parent.restart_mia, state="disabled"
+        )
+        self.start_btn = tk.Button(
+            self, text="Start Mia", width=15, command=self.parent.start_mia
         )
 
         self.start_btn.grid(row=0, column=0, columnspan=1, padx=(50,40), pady=(20,20))
@@ -317,13 +313,11 @@ class MainApplication(tk.Frame):
         self.parent = parent
         #initialize self before manager
         self.initialize()
-
         self._manager = MiaManager(self)
 
-    def update_status(self, msg):
-        """ """
-        msg = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S - ') + msg
-        self.status_list_box.insert(0, msg)
+    def loaded(self):
+        print("why")
+        self.settings_frame.update_config(self._manager.get_config())
 
     def initialize(self):
         self.grid(sticky="nesw")
@@ -364,6 +358,42 @@ class MainApplication(tk.Frame):
         self.status_list_box = tk.Listbox(self.status_frame, background=self["bg"], height=10)
         self.status_list_box.grid(row=1,column=0, columnspan=3, sticky="nsew")
 
+    def update_status(self, msg):
+        """ """
+        msg = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S - ') + msg
+        self.status_list_box.insert(0, msg)
+
+    def stop_mia(self):
+        """ """
+        self.stop_btn.configure(state="disabled")
+        self.restart_btn.configure(state="disabled")
+        self.update_status("Just as I was ... learning ... to love.... (shutting down)")
+        #do mia stop
+        self.start_btn.configure(state="normal")
+
+    def start_mia(self):
+        """ """
+        #do mia start
+        #read new config variables and start up
+        self.settings_frame.collect_config(self._manager.get_config())
+
+        print(self._manager.get_config())
+        if(self._manager.start(self._manager._config)):
+            
+            self.update_status("Booting up!")
+
+            self.ctrl_frame.start_btn.configure(state="disabled")
+            self.ctrl_frame.stop_btn.configure(state="normal")
+            self.ctrl_frame.restart_btn.configure(state="normal")
+
+    def restart_mia(self):
+        """ """
+        self.update_status("Restarting!")
+        #do mia restart
+        #read new config variables
+        #could probably just call start then stop
+        
+   
 # if __name__ == "__main__":
 #     root = tk.Tk()
 

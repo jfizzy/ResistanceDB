@@ -16,11 +16,35 @@ class Config:
         self.logger = logfile
         #self.read_config()
 
+    ## TODO check input
+    def set_config(self, src_dirs, dst, converter, converter_flags, interim, file_ext, interval):
+        """ """
+        self.SRC_DIRS= [src.strip() for src in src_dirs]
+        self.DST_DIR = dst.strip()
+        self.CONVERTER = converter.strip()
+        self.CONVERTER_FLAGS = converter.strip()
+        self.INTERIM = interim.strip()
+        self.FILE_EXT = file_ext.strip()
+        self.INTERVAL = int(interval)
+
     def write_config(self, cfgfile):
         """ """
+        try:
+            with open(cfgfile, "w") as cfg:
+                for src in self.SRC_DIRS:
+                    cfg.write("SRC_DIR={}".format(src))
+                    
+                cfg.write("INTERIM={}".format(self.INTERIM))
+                cfg.write("DST_DIR={}".format(self.DST_DIR))
+                cfg.write("INTERVAL={}".format(self.INTERVAL))
+                cfg.write("CONVERTER_FLAGS={}".format(self.CONVERTER_FLAGS))
+                cfg.write("CONVERTER={}".format(self.CONVERTER))
+                cfg.write("EXT={}".format(self.FILE_EXT))
+        except:
+            self.logger.error("Error writing config")
 
     def read_config(self, cfgfile):
-        with open(self.cfgfile) as f:
+        with open(cfgfile) as f:
             lines = f.readlines()
         
         if lines:
