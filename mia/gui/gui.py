@@ -7,6 +7,7 @@ from time import time, localtime, strftime
 import datetime
 
 from mia_backend.mia_manager import MiaManager
+from mia_backend.config import Config
 
 #############################################################################################
 # Tooltip class taken from http://code.activestate.com/recipes/576688-tooltip-for-tkinter/  #
@@ -60,7 +61,7 @@ class ToolTip( tk.Toplevel ):
           event: The event that called this funciton
         """
         self.visible = 1
-        self.after( int( self.delay * 1000 ), self.show )                       # The after function takes a time argument in miliseconds
+        self.after( int( self.delay * 500 ), self.show )                       # The after function takes a time argument in miliseconds
 
     def show( self ):
         """
@@ -106,12 +107,19 @@ class SettingsFrame(tk.Frame):
         self.initialize()
 
     def insert_disabled_field(self, field, msg):
+        """
+            inserts into a disabled field 
+        """
         field.config(state="normal")
         field.delete("0.0", END)
         field.insert("0.0", str(msg))
         field.config(state="disable")
+        ToolTip(field, str(msg))
 
     def update_config(self, config):
+        """
+            updates UI config values based on values of a Config object
+        """
         # remember to enable, insert, then disable the field - user shouldnt be allowed to update field
         self.insert_disabled_field(self.dst_field, config.DST_DIR)
         self.insert_disabled_field(self.exe_field, config.CONVERTER)
@@ -119,8 +127,13 @@ class SettingsFrame(tk.Frame):
         self.src_list.delete(0, END)
         for src in config.SRC_DIRS:
             self.src_list.insert(END, str(src))
+
     def collect_config(self, config):
-        #butts
+        """
+            collects the config variables from the GUI and
+            sets them to the passed in Config class    
+        """
+
         dst = self.dst_field.get("1.0", END)
         exe = self.exe_field.get("1.0", END)
         src = self.src_list.get(0, END)
@@ -132,7 +145,9 @@ class SettingsFrame(tk.Frame):
         config.set_config(src, dst, exe, flags, interim, ext, interval)
 
     def pick_dst_btn_clicked(self):
-        """ """
+        """
+            callback for choose destination button being clicked
+        """
         folder_name = tkfd.askdirectory()
         if(folder_name):
             #enable textbox to allow insertion
@@ -146,13 +161,16 @@ class SettingsFrame(tk.Frame):
             print("No folder selected!")
 
     def interval_val_changed(self, value):
-        """ """
+        """
+            interval slider moved, update interval value
+        """
         ## set val in settings
         self.interval = value
-        print(value)
 
     def parallelize_checked(self):
-        """ """
+        """
+            callback for "parallize" being checked or unchecked
+        """
         if self.parallelize.get():
             #paralellize is checked
             print("RAGE IT!")
@@ -161,6 +179,9 @@ class SettingsFrame(tk.Frame):
             print("THROTTLE BACK AAAHHHH")
 
     def add_src_folder(self):
+        """
+            callback for the "add source" button being clicked
+        """
         folder_name = tkfd.askdirectory()
         if(folder_name):
             srcs = self.src_list.get(0, END)
@@ -170,6 +191,9 @@ class SettingsFrame(tk.Frame):
             print("No folder selected!")
 
     def del_src_btn_clicked(self):
+        """
+            callback for the "delete source" button being clicked
+        """
         lb = self.src_list
         #lambda lb=self.src_list: lb.delete(ANCHOR)
         selected = lb.curselection()
@@ -181,7 +205,9 @@ class SettingsFrame(tk.Frame):
         #lambda lb=self.src_list: lb.delete(ANCHOR)
 
     def choose_readw_loc(self):
-        """ """
+        """
+            callback for choosing the readw executable location
+        """
         file_name = tkfd.askopenfile()
         if(file_name):
             self.exe_field.configure(state="normal")
@@ -240,7 +266,7 @@ class SettingsFrame(tk.Frame):
         self.exe_lbl.configure(background=self["bg"])
         self.exe_lbl.grid(row=3, column = 0, padx=20, pady=(0,0), sticky=W)
 
-        self.exe_field = tk.Text(self, height=self.btn_height, width=50, state="disabled")
+        self.exe_field = tk.Text(self, height=self.btn_height, width=60, state="disabled")
         self.exe_field.grid(row=4, column=0, columnspan=1, padx=20, sticky="ew")
         self.exe_field.configure(background="lightgray")
 
@@ -301,7 +327,7 @@ class Controls(tk.Frame):
     def initialize(self):
         ### default to disabled, enable when stop is pressed ###
         self.stop_btn = tk.Button(
-            self, text="Stop Mia", width=15, command=self.parent.start_mia, state="disabled"
+            self, text="Stop Mia", width=15, command=self.parent.stop_mia, state="disabled"
         )
         self.restart_btn = tk.Button(
             self, text="Restart Mia", width=15, command=self.parent.restart_mia, state="disabled"
@@ -325,10 +351,15 @@ class MainApplication(tk.Frame):
         self._manager = MiaManager(self)
 
     def loaded(self):
-        print("why")
+        """ called when the frame is fully loaded, updates fields with config values """
         self.settings_frame.update_config(self._manager.get_config())
 
     def initialize(self):
+        """
+            initialize for MainApplication
+
+            intializes widgets and main values for Main Application        
+        """
         self.grid(sticky="nesw")
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
@@ -384,16 +415,15 @@ class MainApplication(tk.Frame):
         """ """
         #do mia start
         #read new config variables and start up
-        self.settings_frame.collect_config(self._manager.get_config())
+        config = Config(None)
+        self.settings_frame.collect_config(config)
+        
+        self._manager.start(config)
 
-        print(self._manager.get_config())
-        if(self._manager.start(self._manager._config)):
-            
-            self.update_status("Booting up!")
-
-            self.ctrl_frame.start_btn.configure(state="disabled")
-            self.ctrl_frame.stop_btn.configure(state="normal")
-            self.ctrl_frame.restart_btn.configure(state="normal")
+    def mia_starting(self):
+        self.ctrl_frame.start_btn.configure(state="disabled")
+        self.ctrl_frame.stop_btn.configure(state="normal")
+        self.ctrl_frame.restart_btn.configure(state="normal")
 
     def restart_mia(self):
         """ """
@@ -401,8 +431,8 @@ class MainApplication(tk.Frame):
         #do mia restart
         #read new config variables
         #could probably just call start then stop
-        
-   
+
+
 # if __name__ == "__main__":
 #     root = tk.Tk()
 

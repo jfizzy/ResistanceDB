@@ -9,12 +9,13 @@ class MiaManager():
     """
         Main backend driver class for the Mia application - interfaces with gui and backend components
     """
-
+    LOG_FILE = 'mia_backend/.miaconfig'
+    
     def __init__(self, parent):
         self._parent = parent
         self._logger = EZLogger(logger_name="MiaLogger", log_filename="mia_log.log", filesize=10*1024*1024, backupCount=5, filemode='w')
         self._config = Config(self._logger)
-        self._config.read_config('mia_backend/.miaconfig')
+        self._config.read_config(self.LOG_FILE)
         self._parent.update_status("Initialized!")
 
     def get_config(self):
@@ -23,7 +24,10 @@ class MiaManager():
     def start(self, config):
         """ """
         if (self.checkConfig(config)):
-            print("Start")
+            self._config.cpy_config(config)
+            self._config.write_config(self.LOG_FILE)
+            self._parent.update_status("Config valid. Starting Mia!")
+            self._parent.mia_starting()
 
     def checkConfig(self, config):
         """ checks that mia has received the default minimum valid arguments for config """
