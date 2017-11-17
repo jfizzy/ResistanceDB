@@ -405,11 +405,11 @@ class MainApplication(tk.Frame):
 
     def stop_mia(self):
         """ """
-        self.stop_btn.configure(state="disabled")
-        self.restart_btn.configure(state="disabled")
+        self.ctrl_frame.stop_btn.configure(state="disabled")
+        self.ctrl_frame.restart_btn.configure(state="disabled")
         self.update_status("Just as I was ... learning ... to love.... (shutting down)")
         #do mia stop
-        self.start_btn.configure(state="normal")
+        self.ctrl_frame.start_btn.configure(state="normal")
 
     def start_mia(self):
         """ """

@@ -14,7 +14,6 @@ class Config:
 
     def __init__(self, logfile):
         self.logger = logfile
-        #self.read_config()
 
     def cpy_config(self, config):
         """ copy constructor """
@@ -31,7 +30,9 @@ class Config:
 
     ## TODO check input
     def set_config(self, src_dirs, dst, converter, converter_flags, interim, file_ext, interval):
-        """ """
+        """
+            sets config values directly
+        """
         self.SRC_DIRS= [src.strip() for src in src_dirs]
         self.DST_DIR = dst.strip()
         self.CONVERTER = converter.strip()
@@ -41,7 +42,9 @@ class Config:
         self.INTERVAL = int(interval)
 
     def write_config(self, cfgfile):
-        """ """
+        """
+            writes config values to file in a readable format
+        """
         try:
             with open(cfgfile, "w") as cfg:
                 for src in self.SRC_DIRS:
@@ -57,6 +60,9 @@ class Config:
             self.logger.error("Error writing config")
 
     def read_config(self, cfgfile):
+        """
+            reads config from a cfg file
+        """
         with open(cfgfile) as f:
             lines = f.readlines()
         
@@ -67,8 +73,8 @@ class Config:
                 if '#' in line:
                     line = line.split('#')[0].strip()
                 if re.match('^$', line):
+                    pass
                     # empty line
-                    self.logger.info('empty line : ['+line.split('\n')[0]+']')
                 elif re.match('^SRC_DIR=.+$', line):
                     self.add_source_dir(line.split('=')[1])
                 elif re.match('^FILE_EXT=.+$', line):
