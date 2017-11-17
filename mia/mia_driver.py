@@ -1,8 +1,6 @@
-from ez_logger import EZLogger
 import os
 from file_mover import FileMover, FileMoverException
 from fileparser import FileParser, FileParserException
-from config import Config
 import time
 
 logger = EZLogger(logger_name="MiaLogger", log_filename="mia_log.log", filesize=10*1024*1024, backupCount=5, filemode='w')

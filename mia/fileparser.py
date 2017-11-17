@@ -1,6 +1,6 @@
 import os
-import fileutil
 import subprocess
+import fileutil
 
 class FileParser:
     """ applies some file permuting action to a directory of files

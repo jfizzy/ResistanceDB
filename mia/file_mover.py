@@ -3,8 +3,9 @@ import os
 import sys
 import re
 from glob import glob
-import fileutil
 import itertools
+
+import fileutil
 
 class FileMover:
     """ Moves files from source to destination of type file_ext """

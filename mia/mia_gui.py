@@ -316,6 +316,7 @@ class MainApplication(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
         self.initialize()
+        self._Manager = MiaManager(self)
 
     def update_status(self, msg):
         """ """
