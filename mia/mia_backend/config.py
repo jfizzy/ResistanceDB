@@ -12,12 +12,14 @@ class Config:
     # TODO: REMEMBER TO ADD A CHECK FOR THIS VARIABLE
     INTERVAL = 10
 
-    def __init__(self, cfgfile, logfile):
-        self.cfgfile = cfgfile
+    def __init__(self, logfile):
         self.logger = logfile
-        self.read_config()
+        #self.read_config()
 
-    def read_config(self):
+    def write_config(self, cfgfile):
+        """ """
+
+    def read_config(self, cfgfile):
         with open(self.cfgfile) as f:
             lines = f.readlines()
         

@@ -5,7 +5,7 @@ import re
 from glob import glob
 import itertools
 
-import fileutil
+import mia_backend.fileutil
 
 class FileMover:
     """ Moves files from source to destination of type file_ext """

@@ -6,7 +6,7 @@ from tkinter import filedialog as tkfd
 from time import time, localtime, strftime
 import datetime
 
-from mia_manager import MiaManager
+from mia_backend.mia_manager import MiaManager
 
 #############################################################################################
 # Tooltip class taken from http://code.activestate.com/recipes/576688-tooltip-for-tkinter/  #
@@ -315,8 +315,10 @@ class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+        #initialize self before manager
         self.initialize()
-        self._Manager = MiaManager(self)
+
+        self._manager = MiaManager(self)
 
     def update_status(self, msg):
         """ """
@@ -362,32 +364,32 @@ class MainApplication(tk.Frame):
         self.status_list_box = tk.Listbox(self.status_frame, background=self["bg"], height=10)
         self.status_list_box.grid(row=1,column=0, columnspan=3, sticky="nsew")
 
-if __name__ == "__main__":
-    root = tk.Tk()
+# if __name__ == "__main__":
+#     root = tk.Tk()
 
-    #let child elements resize
-    root.columnconfigure(0, weight=1)
-    root.rowconfigure(0, weight=1)
-    MainApplication(root).grid(sticky="nesw")
+#     #let child elements resize
+#     root.columnconfigure(0, weight=1)
+#     root.rowconfigure(0, weight=1)
+#     MainApplication(root).grid(sticky="nesw")
 
-    root.winfo_toplevel().title("MIA")
-    root.update()
-    root.style = ttk.Style()
-    root.style.theme_use('clam')
+#     root.winfo_toplevel().title("MIA")
+#     root.update()
+#     root.style = ttk.Style()
+#     root.style.theme_use('clam')
 
-    ws = root.winfo_screenwidth()
-    hs = root.winfo_screenheight()
+#     ws = root.winfo_screenwidth()
+#     hs = root.winfo_screenheight()
 
-    w = root.winfo_width()
-    h = root.winfo_height()
+#     w = root.winfo_width()
+#     h = root.winfo_height()
 
-    x = (ws/2) - (w/2)
-    y = (hs/2) - (h/2)
+#     x = (ws/2) - (w/2)
+#     y = (hs/2) - (h/2)
 
-    root.geometry('%dx%d+%d+%d' % (w,h,x,y))
-    root.resizable(False, False)
+#     root.geometry('%dx%d+%d+%d' % (w,h,x,y))
+#     root.resizable(False, False)
 
-    root.iconbitmap('39567a-cool-24.ico')
-    root.iconify()
-    root.deiconify()
-    root.mainloop()
+#     root.iconbitmap('39567a-cool-24.ico')
+#     root.iconify()
+#     root.deiconify()
+#     root.mainloop()
