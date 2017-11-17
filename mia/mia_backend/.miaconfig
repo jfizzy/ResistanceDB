@@ -1,0 +1,10 @@
+SRC_DIR=C:/Users/tyron/school/project/Raw Data
+SRC_DIR=C:/Users/tyron/school/project/Src2
+SRC_DIR=C:/Users/tyron/school/project/Interim
+SRC_DIR=C:/Users/tyron/school/project
+INTERIM=
+DST_DIR=C:/Users/tyron/school/project/Dest
+INTERVAL=21
+CONVERTER_FLAGS=--compress --mzXML
+CONVERTER=C:/Users/tyron/school/project/Raw Data/Converter/ReAdW.exe
+EXT=raw

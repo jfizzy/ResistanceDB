@@ -12,13 +12,58 @@ class Config:
     # TODO: REMEMBER TO ADD A CHECK FOR THIS VARIABLE
     INTERVAL = 10
 
-    def __init__(self, cfgfile, logfile):
-        self.cfgfile = cfgfile
+    def __init__(self, logfile):
         self.logger = logfile
-        self.read_config()
 
-    def read_config(self):
-        with open(self.cfgfile) as f:
+    def cpy_config(self, config):
+        """ copy constructor """
+        if(config.logger):
+            self.logger = config.logger
+
+        self.SRC_DIRS= config.SRC_DIRS
+        self.DST_DIR = config.DST_DIR
+        self.CONVERTER = config.CONVERTER
+        self.CONVERTER_FLAGS = config.CONVERTER_FLAGS
+        self.INTERIM = config.INTERIM
+        self.FILE_EXT = config.FILE_EXT
+        self.INTERVAL = config.INTERVAL
+
+    ## TODO check input
+    def set_config(self, src_dirs, dst, converter, converter_flags, interim, file_ext, interval):
+        """
+            sets config values directly
+        """
+        self.SRC_DIRS= [src.strip() for src in src_dirs]
+        self.DST_DIR = dst.strip()
+        self.CONVERTER = converter.strip()
+        self.CONVERTER_FLAGS = converter_flags.strip()
+        self.INTERIM = interim.strip()
+        self.FILE_EXT = file_ext.strip()
+        self.INTERVAL = int(interval)
+
+    def write_config(self, cfgfile):
+        """
+            writes config values to file in a readable format
+        """
+        try:
+            with open(cfgfile, "w") as cfg:
+                for src in self.SRC_DIRS:
+                    cfg.write("SRC_DIR={}\n".format(src))
+                    
+                cfg.write("INTERIM={}\n".format(self.INTERIM))
+                cfg.write("DST_DIR={}\n".format(self.DST_DIR))
+                cfg.write("INTERVAL={}\n".format(self.INTERVAL))
+                cfg.write("CONVERTER_FLAGS={}\n".format(self.CONVERTER_FLAGS))
+                cfg.write("CONVERTER={}\n".format(self.CONVERTER))
+                cfg.write("EXT={}\n".format(self.FILE_EXT))
+        except:
+            self.logger.error("Error writing config")
+
+    def read_config(self, cfgfile):
+        """
+            reads config from a cfg file
+        """
+        with open(cfgfile) as f:
             lines = f.readlines()
         
         if lines:
@@ -28,8 +73,8 @@ class Config:
                 if '#' in line:
                     line = line.split('#')[0].strip()
                 if re.match('^$', line):
+                    pass
                     # empty line
-                    self.logger.info('empty line : ['+line.split('\n')[0]+']')
                 elif re.match('^SRC_DIR=.+$', line):
                     self.add_source_dir(line.split('=')[1])
                 elif re.match('^FILE_EXT=.+$', line):

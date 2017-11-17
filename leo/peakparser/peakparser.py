@@ -29,6 +29,7 @@ class PeakParser:
         """ Parse a given peaks file assumed to be tabbed delimited """
 
         try:
+            print("trying to open {}".format(filename))
             with open(filename, 'rt') as csvfile:
                 reader = csv.reader(csvfile, delimiter='\t')
 
@@ -38,6 +39,8 @@ class PeakParser:
                 # headers - might be important later
                 # they are the name of the mzXML sample file
                 row = reader.__next__()
+                if(filename != "files/peaks/peaks.tab"):
+                    print(row)
                 col_names = [str(s).lower() for s in row[self.DATA_OFFSET:] if s != ""]
 
                 # store column names in format {index: (name, time)}
@@ -77,16 +80,20 @@ class PeakParser:
                         peak = peak_module.Peak(med_mz, med_rt, compound, \
                             category, rt_diff, parent, intensities)
 
+                        if(filename != "files/peaks/peaks.tab"):
+                            print(peak)
+
                         # Ensure that the rt_diff is no larger than 0.05
-                        if peak.verify_rt_diff(.05):
+                        if peak.verify_rt_diff(.4):
                             # ensure that the peaks have intensity of at least 50000 and a ratio of .5 is present
                             if peak.verify_instensity_dispartiy(.5, 50000):
                                 peaks.append(peak)
 
-
         except IndexError as ex:
             print("Error reading in csv file. Error message: {}".format(str(ex)))
             return None
+        except:
+            print("Bad open")
 
         return peaks
 
@@ -124,7 +131,7 @@ class PeakParser:
         if isinstance(peaks, list):
             if peaks and isinstance(peaks[0], peak_module.Peak):
                 with open(filename, "w+") as csvfile:
-                    csvwriter = csv.writer(csvfile, delimiter="\t", quotechar="\"")
+                    csvwriter = csv.writer(csvfile, delimiter="\t", quotechar="\"", lineterminator='\n')
                     # write headers
                     row = ["medMz", "medRt", "compound", "category", "rt_diff", "parent"]
 

@@ -42,5 +42,5 @@ class EZLogger:
         """ prepends a timestamp to the message """
         stamp = time.time()
         formatted = st = datetime.datetime.fromtimestamp(stamp).strftime('%Y-%m-%d %H:%M:%S - ')
-        return "{}{}\n".format(formatted, msg)
+        return "{}{}".format(formatted, msg)
 
