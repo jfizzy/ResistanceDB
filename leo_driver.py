@@ -12,5 +12,11 @@ def main():
     pp.write_peaks_csv(peaks, "test.csv")
     pp.write_condensed_csv(peaks, "condensed.csv")
 
+    unknown = pp.parse_peaks_file("files/peaks/unknown.tab")
+    if(unknown):
+        pp.write_condensed_csv(unknown, 'unknown.csv')
+    else:
+        print("bad read")
+
 if __name__ == "__main__":
     main()
