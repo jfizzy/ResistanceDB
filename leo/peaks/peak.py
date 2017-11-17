@@ -27,7 +27,7 @@ class Peak:
         self._parent = parent
         self._intensities = intensities
 
-    def verify_rt_dif(self, max_rt_dif):
+    def verify_rt_diff(self, max_rt_dif):
         """ verify that the retention time difference from found peak and expected
             retention time is within the value max_rt_dif """
         return abs(max_rt_dif) > abs(self._rt_diff)
@@ -41,27 +41,22 @@ class Peak:
         good_intensities = False
 
         for organism, _ in self._intensities.items():
-            if len(self._intensities[ogranism]) > 1:
+            if len(self._intensities[organism]) > 1:
                 previous_value = None
 
-                for time, value in self._intensities[ogranism].items():
+                for time, value in self._intensities[organism].items():
                     if not previous_value: 
                         #this is our first iteration, previous value has not been set
                         previous_value = value
                     else:
                         #ensure intensities are above min_mz
-                        if previous_value > min_mz or value > min_mz:
-                            #if max value is 0, both are 0 - no change.
+                        if previous_value >= min_mz or value >= min_mz:
+                            #if max value is 0, both are 0 - no change / avoid divide by 0.
                             if max(previous_value, value) == 0:
                                 continue
-                            # if min value is 0 and max value is not 0, 100% change - good sample
-                            elif min(previous_value, value) == 0 and max(previous_value, value) != 0:
-                                this_dif = 1.0
-                                good_intensities = True
-                                break
                             # else find ratio between two to find amount of change
                             else:
-                                this_dif = min(previous_value, value) / max(previous_value, value)
+                                this_dif = 1 - (min(previous_value, value) / max(previous_value, value))
                                 #if the ratio between two tests is greater than or equal to ratio passed in - good sample
                                 if this_dif >= ratio:
                                     good_intensities = True
@@ -69,26 +64,8 @@ class Peak:
 
         return good_intensities
 
-    """
-        for i in range(0, len(self.intensities)):
-            for j in range(i+1, len(self.intensities)):
-                #find smaller intensity
-                if self._intensities[i] > self._intensities[j]:
-                    smaller_intensity = self._intensities[j]
-                    larger_intensity = self._intensities[i]
-                else:
-                    smaller_intensity = self._intensities[i]
-                    larger_intensity = self._intensities[j]
-
-                #divide by larger intensity to see if it is greater than or
-                #equal to the required disparity - if so it is valid
-                ratio = smaller_intensity / larger_intensity
-                if (1 - ratio) > disparity:
-                    return True
-
-        return False
-    """
     def __str__(self):
+        """ string method """
         return repr("med_mz: {} med_rt: {} compound: {} category: {} rt_diff: {} parent: {} intensities {}".format(\
                 self._med_mz, self._med_rt, self._compound, self._category, self._rt_diff, self._parent, self._intensities))
 

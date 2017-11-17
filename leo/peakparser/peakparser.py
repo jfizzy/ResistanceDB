@@ -76,7 +76,12 @@ class PeakParser:
 
                         peak = peak_module.Peak(med_mz, med_rt, compound, \
                             category, rt_diff, parent, intensities)
-                        peaks.append(peak)
+
+                        # Ensure that the rt_diff is no larger than 0.05
+                        if peak.verify_rt_diff(.05):
+                            # ensure that the peaks have intensity of at least 50000 and a ratio of .5 is present
+                            if peak.verify_instensity_dispartiy(.5, 50000):
+                                peaks.append(peak)
 
 
         except IndexError as ex:
@@ -110,22 +115,60 @@ class PeakParser:
 
         return (sample_name, time)
 
-    def clean_peaks(self, peaks, max_rt_diff, ratio):
-        """ """
-        bad_peaks = []
-        for peak in peaks:
-            if not peak.verify_rt_diff(max_rt_diff):
-                bad_peaks.append(peak)
-                continue
+    def write_condensed_csv(self, peaks, filename):
+        """ Condenses the peak information
+            Example: If t0 = 100 and t4 = 10000, then there was a difference of 9900 for this compound
+            for some organism 
+        """            
 
-            
+        if isinstance(peaks, list):
+            if peaks and isinstance(peaks[0], peak_module.Peak):
+                with open(filename, "w+") as csvfile:
+                    csvwriter = csv.writer(csvfile, delimiter="\t", quotechar="\"")
+                    # write headers
+                    row = ["medMz", "medRt", "compound", "category", "rt_diff", "parent"]
+
+                    for colname, _ in peaks[0].intensities.items():
+                        row.append(colname)
+
+                    csvwriter.writerow(row)
+        
+                    for peak in peaks:
+                        row = [str(peak.med_mz), str(peak.med_rt), str(peak.compound), str(peak.category), str(peak.rt_diff), str(peak.parent)]
+                    
+                        for _, tests in peak.intensities.items():
+                            difference = None
+                            if len(tests) >= 2:
+                                for _, value in tests.items():
+                                    if not difference:
+                                        difference = value
+                                    else:
+                                        ratio = 1
+
+                                        if max(difference, value) != 0:
+                                            ratio = 1 - (min(difference, value) / max(difference, value))
+                                        
+                                        if ratio > .5:
+                                            difference = difference - value
+                                        else:
+                                            difference = 0
+
+                                row.append(difference)
+                            else:
+                                row.append(0)
+                    
+                        csvwriter.writerow(row) 
+            else:
+                print("Input must be of type peak")
+        else:
+            print("Input must be a list of peaks.")
 
     def write_peaks_csv(self, peaks, filename):
         """ Writes a list of peaks to csv file """
         if isinstance(peaks, list):
             if peaks and isinstance(peaks[0], peak_module.Peak):
                 try:
-                    ## should add a regex to check filename
+                    ## should add a regex to check filenamet
                     with open(filename, "w+") as csvfile:
                         csvwriter = csv.writer(csvfile, delimiter="\t", quotechar="\"")
                         row = ["medMz", "medRt", "compound", "category", "rt_diff", "parent"]
