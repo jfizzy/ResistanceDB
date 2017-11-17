@@ -130,6 +130,7 @@ class SettingsFrame(tk.Frame):
         if(folder_name):
             #enable textbox to allow insertion
             self.dst_field.configure(state="normal")
+            self.dst_field.delete("0.0", END)
             self.dst_field.insert("0.0", str(folder_name))
             ToolTip(self.dst_field, str(folder_name))
             #disable to prevent direct user input
@@ -178,6 +179,7 @@ class SettingsFrame(tk.Frame):
         if(file_name):
             self.exe_field.configure(state="normal")
             #text box index location is noted by "row.column"
+            self.exe_field.delete("0.0", END)
             self.exe_field.insert("0.0", str(file_name.name))
             ToolTip(self.exe_field, str(file_name.name))
             self.exe_field.configure(state="disabled")
@@ -229,7 +231,7 @@ class SettingsFrame(tk.Frame):
         ### start pick_exe section ###
         self.exe_lbl = tk.Label(self, text="ReAdW.exe Location")
         self.exe_lbl.configure(background=self["bg"])
-        self.exe_lbl.grid(row=3, column = 0, padx=20, pady=(0,0), sticky="ew")
+        self.exe_lbl.grid(row=3, column = 0, padx=20, pady=(0,0), sticky=W)
 
         self.exe_field = tk.Text(self, height=self.btn_height, width=50, state="disabled")
         self.exe_field.grid(row=4, column=0, columnspan=1, padx=20, sticky="ew")
