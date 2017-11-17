@@ -4,15 +4,15 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog as tkfd
 from time import time, localtime, strftime
-from config import Config
 import datetime
 
+from mia_manager import MiaManager
 
 #############################################################################################
 # Tooltip class taken from http://code.activestate.com/recipes/576688-tooltip-for-tkinter/  #
 # Written by Pete Garcin, github: rawktron                                                  #
 #############################################################################################
-class ToolTip( Toplevel ):
+class ToolTip( tk.Toplevel ):
     """
     Provides a ToolTip widget for Tkinter.
     To apply a ToolTip to any Tkinter widget, simply pass the widget to the
@@ -315,7 +315,6 @@ class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
-        self.config = Config()
         self.initialize()
 
     def update_status(self, msg):
