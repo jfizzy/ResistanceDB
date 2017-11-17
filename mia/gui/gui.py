@@ -105,13 +105,20 @@ class SettingsFrame(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.initialize()
 
-    def update_config(self, config):
-        #cannot for the life of my figure out why this isn't updating
-        self.dst_field.delete("0.0", END)
-        self.dst_field.insert("0.0", str(config.DST_DIR))
-        #self.dst_field.insert("0.0", "WHAT THE FUCK")
-        #messagebox.askyesno("FUCK?", config.DST_DIR)
+    def insert_disabled_field(self, field, msg):
+        field.config(state="normal")
+        field.delete("0.0", END)
+        field.insert("0.0", str(msg))
+        field.config(state="disable")
 
+    def update_config(self, config):
+        # remember to enable, insert, then disable the field - user shouldnt be allowed to update field
+        self.insert_disabled_field(self.dst_field, config.DST_DIR)
+        self.insert_disabled_field(self.exe_field, config.CONVERTER)
+        self.interval_slider.set(int(config.INTERVAL))
+        self.src_list.delete(0, END)
+        for src in config.SRC_DIRS:
+            self.src_list.insert(END, str(src))
     def collect_config(self, config):
         #butts
         dst = self.dst_field.get("1.0", END)
