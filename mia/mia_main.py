@@ -32,7 +32,10 @@ def main():
     root.iconify()
     root.deiconify()
 
+    root.protocol("WM_DELETE_WINDOW", mw.on_closing)
+
     root.after(50, mw.loaded())
+   
     root.mainloop()
 
 if __name__ == "__main__":
