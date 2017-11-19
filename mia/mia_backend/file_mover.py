@@ -3,9 +3,10 @@ import os
 import sys
 import re
 from glob import glob
+import queue
 import itertools
 
-import mia_backend.fileutil
+from mia_backend import fileutil
 
 class FileMover:
     """ Moves files from source to destination of type file_ext """
@@ -14,6 +15,7 @@ class FileMover:
             end_file_ext is optional
         """
         self._source_dirs = src
+        self._file_queue = queue.Queue()
         self._logger = logger
 
         if not isinstance(self._source_dirs, list):
@@ -38,6 +40,12 @@ class FileMover:
 
         self._logger.info("Destination: {}".format(self._dest_dir))
         self._logger.info("Extension: {}".format(self._file_ext))
+
+        files = fileutil.get_files_by_ext(src, dest, file_ext, end_file_ext)
+
+        for file in files:
+            print(file)
+            self._file_queue.put_nowait(item=file)
 
     def check_dirs_exist(self):
         """ checks if the directories passed in on object creation are valid """

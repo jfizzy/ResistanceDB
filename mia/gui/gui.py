@@ -5,9 +5,111 @@ from tkinter import messagebox
 from tkinter import filedialog as tkfd
 from time import time, localtime, strftime
 import datetime
+import queue
+import threading
 
 from mia_backend.mia_manager import MiaManager
 from mia_backend.config import Config
+
+class MainApplication(tk.Frame):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+        #initialize self before manager
+        self.initialize()
+        self._manager = MiaManager(self)
+
+    def on_closing(self):
+        """ handle closing event """
+        self._manager.shutdown()
+        self.parent.destroy()
+
+    def loaded(self):
+        """ called when the frame is fully loaded, updates fields with config values """
+        self.settings_frame.update_config(self._manager.get_config())
+
+    def initialize(self):
+        """
+            initialize for MainApplication
+
+            intializes widgets and main values for Main Application        
+        """
+        self.grid(sticky="nesw")
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
+
+        for i in range(0, 15):
+            self.rowconfigure(i, weight=1)
+
+        ## horizontal lines by title
+        sep = ttk.Separator(self, orient=HORIZONTAL)
+        sep.grid(row=0,column=0,sticky="ew", padx=(80,0))
+        sep2 = ttk.Separator(self, orient=HORIZONTAL)
+        sep2.grid(row=0,column=2, sticky="ew", padx=(0,80))
+
+        ##w.create_rectangle(50, 25, 150, 75, fill="blue")
+
+        self.main_lbl = tk.Label(self, text="Mia!")
+        self.main_lbl.grid(row=0, column=1)
+        self.main_lbl.config(font=("Garamond", 32))
+
+        self.settings_frame = SettingsFrame(self, background=self.parent["bg"])
+        self.settings_frame.grid(row=1, column=0, columnspan=3)
+
+        self.ctrl_frame = Controls(self, highlightbackground='darkgray', highlightcolor='darkgray', highlightthickness=1)
+        self.ctrl_frame.grid(row=2, column=0, columnspan=3, pady=(0,20))
+
+        self.status_frame = tk.Frame(self, highlightbackground='darkgray', highlightcolor='darkgray', highlightthickness=1)
+        self.status_frame.grid(row=3, column=0, columnspan=3, sticky="ew")
+
+        self.status_frame.columnconfigure(0, weight=1)
+
+        self.status_lbl = tk.Label(self.status_frame, text="Status", width=15)
+        self.status_lbl.grid(row=0,column=0)
+
+        #status list box holds 5 items (change with width=x)
+        self.status_list_box = tk.Listbox(self.status_frame, background=self["bg"], height=10)
+        self.status_list_box.grid(row=1,column=0, columnspan=3, sticky="nsew")
+
+    def update_status(self, msg):
+        """ """
+        msg = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S - ') + msg
+        self.status_list_box.insert(0, msg)
+
+    def stop_mia(self):
+        """ """
+        self.update_status("Stop signal received, waiting for mia to finish current file trasnfer... This may take a few minutes.")
+        self.ctrl_frame.stop_btn.configure(state="disabled")
+        self.ctrl_frame.restart_btn.configure(state="disabled")
+        # update gui
+        tk.Tk.update(self)
+        self._manager.stop()
+
+    def mia_stopped(self):
+        """ callback for manager to let main window know mia has shut down """
+        self.ctrl_frame.start_btn.configure(state="normal")
+
+    def start_mia(self):
+        """ """
+        #do mia start
+        #read new config variables and start up
+        config = Config(None)
+        self.settings_frame.collect_config(config)
+        
+        self._manager.start(config)
+
+    def mia_starting(self):
+        self.ctrl_frame.start_btn.configure(state="disabled")
+        self.ctrl_frame.stop_btn.configure(state="normal")
+        self.ctrl_frame.restart_btn.configure(state="normal")
+
+    def restart_mia(self):
+        """ """
+        self.update_status("Restarting!")
+        #do mia restart
+        #read new config variables
+        #could probably just call start then stop
 
 #############################################################################################
 # Tooltip class taken from http://code.activestate.com/recipes/576688-tooltip-for-tkinter/  #
@@ -125,6 +227,7 @@ class SettingsFrame(tk.Frame):
         self.insert_disabled_field(self.exe_field, config.CONVERTER)
         self.interval_slider.set(int(config.INTERVAL))
         self.src_list.delete(0, END)
+        print(config.SRC_DIRS)
         for src in config.SRC_DIRS:
             self.src_list.insert(END, str(src))
 
@@ -342,95 +445,7 @@ class Controls(tk.Frame):
         ### end control button settings ###
 
 
-class MainApplication(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
-        tk.Frame.__init__(self, parent, *args, **kwargs)
-        self.parent = parent
-        #initialize self before manager
-        self.initialize()
-        self._manager = MiaManager(self)
 
-    def loaded(self):
-        """ called when the frame is fully loaded, updates fields with config values """
-        self.settings_frame.update_config(self._manager.get_config())
-
-    def initialize(self):
-        """
-            initialize for MainApplication
-
-            intializes widgets and main values for Main Application        
-        """
-        self.grid(sticky="nesw")
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-        self.columnconfigure(2, weight=1)
-
-        for i in range(0, 15):
-            self.rowconfigure(i, weight=1)
-
-        ## horizontal lines by title
-        sep = ttk.Separator(self, orient=HORIZONTAL)
-        sep.grid(row=0,column=0,sticky="ew", padx=(80,0))
-        sep2 = ttk.Separator(self, orient=HORIZONTAL)
-        sep2.grid(row=0,column=2, sticky="ew", padx=(0,80))
-
-        ##w.create_rectangle(50, 25, 150, 75, fill="blue")
-
-        self.main_lbl = tk.Label(self, text="Mia!")
-        self.main_lbl.grid(row=0, column=1)
-        self.main_lbl.config(font=("Garamond", 32))
-
-        self.settings_frame = SettingsFrame(self, background=self.parent["bg"])
-        self.settings_frame.grid(row=1, column=0, columnspan=3)
-
-        self.ctrl_frame = Controls(self, highlightbackground='darkgray', highlightcolor='darkgray', highlightthickness=1)
-        self.ctrl_frame.grid(row=2, column=0, columnspan=3, pady=(0,20))
-
-        self.status_frame = tk.Frame(self, highlightbackground='darkgray', highlightcolor='darkgray', highlightthickness=1)
-        self.status_frame.grid(row=3, column=0, columnspan=3, sticky="ew")
-
-        self.status_frame.columnconfigure(0, weight=1)
-
-        self.status_lbl = tk.Label(self.status_frame, text="Status", width=15)
-        self.status_lbl.grid(row=0,column=0)
-
-        #status list box holds 5 items (change with width=x)
-        self.status_list_box = tk.Listbox(self.status_frame, background=self["bg"], height=10)
-        self.status_list_box.grid(row=1,column=0, columnspan=3, sticky="nsew")
-
-    def update_status(self, msg):
-        """ """
-        msg = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S - ') + msg
-        self.status_list_box.insert(0, msg)
-
-    def stop_mia(self):
-        """ """
-        self.ctrl_frame.stop_btn.configure(state="disabled")
-        self.ctrl_frame.restart_btn.configure(state="disabled")
-        self.update_status("Just as I was ... learning ... to love.... (shutting down)")
-        #do mia stop
-        self.ctrl_frame.start_btn.configure(state="normal")
-
-    def start_mia(self):
-        """ """
-        #do mia start
-        #read new config variables and start up
-        config = Config(None)
-        self.settings_frame.collect_config(config)
-        
-        self._manager.start(config)
-
-    def mia_starting(self):
-        self.ctrl_frame.start_btn.configure(state="disabled")
-        self.ctrl_frame.stop_btn.configure(state="normal")
-        self.ctrl_frame.restart_btn.configure(state="normal")
-
-    def restart_mia(self):
-        """ """
-        self.update_status("Restarting!")
-        #do mia restart
-        #read new config variables
-        #could probably just call start then stop
 
 
 # if __name__ == "__main__":
