@@ -79,7 +79,7 @@ class Config:
                     self.add_source_dir(line.split('=')[1])
                 elif re.match('^FILE_EXT=.+$', line):
                     self.add_file_ext(line.split('=')[1])
-                elif re.match('^DST_DIR=((?:[\w]\:|\\\\)(\\\\[a-z_\-\s0-9\.]+)+|(.+)/([^/]+))$', line):
+                elif re.match('^DST_DIR=.+$', line):
                     # destination directory line
                     self.set_destination_dir(line.split('=')[1])
                 elif re.match('^CONVERTER=.+$', line):
@@ -120,11 +120,7 @@ class Config:
 
     def set_destination_dir(self, line):
         self.logger.info(' Config >>>'+line)
-        if os.path.isdir(line):
-            self.logger.info('found the dest dir')
-            self.DST_DIR = line
-            return
-        self.logger.warning('Config dest dir could not be resolved')
+        self.DST_DIR = line
 
     def set_converter_loc(self, line):
         self.logger.info(' Config >>>'+line)

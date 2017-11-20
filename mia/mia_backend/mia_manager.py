@@ -1,11 +1,10 @@
 """ imports """
 from enum import Enum
 import threading
-import time
 import queue
 from mia_backend.ez_logger import EZLogger
 from mia_backend.file_mover import FileMover, FileMoverException
-from mia_backend.fileparser import FileParser, FileParserException
+#from mia_backend.fileparser import FileParser, FileParserException
 from mia_backend.config import Config
 
 class Instruction(Enum):
@@ -18,11 +17,11 @@ class Instruction(Enum):
 
 class MiaManager():
     """
-        Main backend driver class for the Mia application - interfaces with gui and backend components
+        Main backend driver class for the Mia application -
+        nterfaces with gui and backend components
     """
     LOG_FILE = 'mia_backend/.miaconfig'
 
-    
     def __init__(self, parent):
         self._parent = parent
         self._logger = EZLogger(logger_name="MiaLogger",
@@ -32,15 +31,12 @@ class MiaManager():
         self._config = Config(self._logger)
         self._config.read_config(self.LOG_FILE)
         self._parent.update_status("Initialized!")
+        self._config_lock = threading.Lock()
         self._work_queue = queue.Queue()
         self._running = False
         self._worker_thread = threading.Thread(None, self.run, "worker_thread", {}, {})
         self._worker_thread.start()
         self._transfer_thread = None
-
-    def get_worker_thread(self):
-        """ gets the worker thread """
-        return self._worker_thread
 
     def get_config(self):
         """ get configuration settings """
@@ -63,14 +59,30 @@ class MiaManager():
                 self._parent.update_status(ex)
 
     def transfer(self):
-        """ """
+        """ handles file transfer and file parsing
+            Creates a FileMover object to handle file moving, if there are files left to move
+            and we have not received the quit signal, then grab a file and perform transfer.
 
+            If we have not receieved quit signal at the end of the transfer, reset the interval to
+            do work again.
+        """
+        self._config_lock.acquire()
+        file_mover = FileMover(self._config.SRC_DIRS,
+                               self._config.INTERIM,
+                               self._config.DST_DIR,
+                               self._config.FILE_EXT,
+                               self._logger)
         #file_movers = file_mover.FileMover(src, self._config.DST_DIR, self._config.FILE_EXT, None
         #self._transfer_thread = threading.Timer(0, self.do_transfer, {}, {})
 
-        #reset timer to do work again, this time using interval
+        # while we are still running and have files to move
+        while self._running and not file_mover.files_left():
+            #do move
+            pass
+
+        # if still running at end of file, reset interval to do another move
         if self._running:
-            self._transfer_thread = threading.Timer(self._config.INTERVAL, self.transfer, {}, {})
+            self._transfer_thread = threading.Timer(self._config.INTERVAL * 60, self.transfer, {}, {})
 
     def do_transfer(self):
         """ do a single file move """
@@ -83,12 +95,13 @@ class MiaManager():
             print("parsed instruction {}".format(instruction))
             instruction = self._work_queue.get(block=True, timeout=None)
 
+        self._running = False
         print("Received shutdown signal")
 
     def stop(self):
         """ GUI is requesting mia shut down """
         self._work_queue.put(Instruction.QUIT, block=True, timeout=None)
-        if self._transfer_thread.is_alive():
+        if self._transfer_thread and self._transfer_thread.is_alive():
             self._transfer_thread.join()
 
         self._parent.update_status("Mia has stopped transfers.")
@@ -98,7 +111,7 @@ class MiaManager():
         """ shuts down all worker and timer threads, informs parent when threads have joined """
         self._work_queue.put(Instruction.SHUTDOWN, block=True, timeout=None)
         self._parent.update_status("Shutdown signal received, waiting for mia to finish processes...")
-        if self._transfer_thread.is_alive():
+        if self._transfer_thread and self._transfer_thread.is_alive():
             self._transfer_thread.join()
         self._worker_thread.join()
         self._parent.update_status("Mia has shut down.")
@@ -125,19 +138,25 @@ class MiaManager():
         """ checks that mia has received the default minimum valid arguments for config """
         valid = True
 
-        if not config.SRC_DIRS:
+        if not config.SRC_DIRS or len(config.SRC_DIRS) == 0:
             self._parent.update_status(\
                 "Error detected in config: No Source Directories")
             valid = False
 
-        if not config.DST_DIR:
+        if not config.DST_DIR or config.DST_DIR == '':
             self._parent.update_status(\
                 "Error detected in config: No Destination Directory")
             valid = False
 
-        if not config.CONVERTER:
+        if not config.CONVERTER or config.CONVERTER == '':
             self._parent.update_status(\
                 "Error detected in config: ReAdW.exe path not set")
+            valid = False
+
+        if not config.INTERIM or config.INTERIM == '':
+            self._parent.update_status(\
+                "Error detected in config: No Interim Directory"
+            )
             valid = False
 
         return valid
