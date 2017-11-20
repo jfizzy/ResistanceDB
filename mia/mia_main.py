@@ -36,8 +36,13 @@ def main():
 
     root.protocol("WM_DELETE_WINDOW", main_window.on_closing)
     root.after(50, main_window.loaded())
-    root.mainloop()
+
+    try:
+        root.mainloop()
+    except:
+        root.destroy()
 
 if __name__ == "__main__":
     """ main """
     main()
+

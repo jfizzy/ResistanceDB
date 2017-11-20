@@ -225,6 +225,7 @@ class SettingsFrame(tk.Frame):
         # remember to enable, insert, then disable the field - user shouldnt be allowed to update field
         self.insert_disabled_field(self.dst_field, config.DST_DIR.replace("/", "\\"))
         self.insert_disabled_field(self.exe_field, config.CONVERTER.replace("/", "\\"))
+        self.insert_disabled_field(self.interim_field, config.INTERIM.replace("/", "\\"))
         self.interval_slider.set(int(config.INTERVAL))
         self.src_list.delete(0, END)
         for src in config.SRC_DIRS:
@@ -242,7 +243,7 @@ class SettingsFrame(tk.Frame):
         src = self.src_list.get(0, END)
         interval = self.interval
         ext = 'raw'
-        flags = '--compress --mzXML'
+        flags = 'a'#--compress --mzXML'
 
         config.set_config(src, dst, exe, flags, interim, ext, interval)
 

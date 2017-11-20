@@ -66,26 +66,30 @@ class MiaManager():
             If we have not receieved quit signal at the end of the transfer, reset the interval to
             do work again.
         """
+
+        print("In transfer!")
         self._config_lock.acquire()
         file_mover = FileMover(self._config.SRC_DIRS,
                                self._config.INTERIM,
                                self._config.DST_DIR,
                                self._config.FILE_EXT,
+                               self._config.CONVERTER,
+                               self._config.CONVERTER_FLAGS,
                                self._logger)
+
+        self._config_lock.release()
         #file_movers = file_mover.FileMover(src, self._config.DST_DIR, self._config.FILE_EXT, None
         #self._transfer_thread = threading.Timer(0, self.do_transfer, {}, {})
 
         # while we are still running and have files to move
-        while self._running and not file_mover.files_left():
-            #do move
-            pass
+        while self._running and file_mover.files_left():
+            print("Processing a file...")
+            file_mover.process_next_file()
 
         # if still running at end of file, reset interval to do another move
         if self._running:
             self._transfer_thread = threading.Timer(self._config.INTERVAL * 60, self.transfer, {}, {})
-
-    def do_transfer(self):
-        """ do a single file move """
+            self._transfer_thread.start()
 
     def run(self):
         """ handles the actual running of mia """
@@ -109,10 +113,12 @@ class MiaManager():
 
     def shutdown(self):
         """ shuts down all worker and timer threads, informs parent when threads have joined """
+        self._work_queue.put(Instruction.QUIT, block=True, timeout=None)
         self._work_queue.put(Instruction.SHUTDOWN, block=True, timeout=None)
         self._parent.update_status("Shutdown signal received, waiting for mia to finish processes...")
         if self._transfer_thread and self._transfer_thread.is_alive():
             self._transfer_thread.join()
+
         self._worker_thread.join()
         self._parent.update_status("Mia has shut down.")
 

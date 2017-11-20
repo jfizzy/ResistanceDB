@@ -22,7 +22,7 @@ class RawFile():
 
         if not interim:
             interim = os.getcwd()
-            
+
         self._interim = self.gen_dir(interim)
         self._dst = self.gen_dir(dst)
 
@@ -61,15 +61,42 @@ class RawFile():
             #new_name = self._dst + "\\" + new_name[1] + orig_src[1]
 
         return new_dir
+
+    def get_interim(self):
+        """ get the interim directory """
+        return self._interim
+
+    def get_src(self):
+        """ get the source directory """
+        return self._src
+
+    def get_dest(self):
+        """ get the destination directory """
+        return self._dst
         
+    def get_src_filename(self):
+        """ get the source file name """
+        return self._file_name
+
+    def get_interim_filename(self):
+        """ get the interim filename """
+        return self._new_name
+
+    def get_dest_filename(self):
+        """ get the destination filename """
+        return self._new_name.replace('.raw', '.mzXML')
 
     def get_full_file_src(self):
         """ returns the full path to the source including filename """
         return os.path.join(self._src, self._file_name)
 
+    def get_full_file_interim(self):
+        """ returns the full path to the interim including filename """
+        return os.path.join(self._interim, self._file_name)
+
     def get_full_file_dest(self):
         """ returns the full path to the destination including the new file name """
-        return os.path.join(self._dst, self._new_name)
+        return os.path.join(self._dst, self._new_name.replace('.raw', '.mzXML'))
 
     def __str__(self):
         """ to string method """

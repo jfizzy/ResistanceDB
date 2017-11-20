@@ -1,13 +1,14 @@
 """ includes """
 import os
 import queue
+import subprocess
 from shutil import copyfile
 
 from mia_backend.raw_file import RawFile, RawFileException
 
 class FileMover:
     """ Moves files from source to destination of type file_ext """
-    def __init__(self, srcs, interim, dest, file_ext, logger):
+    def __init__(self, srcs, interim, dest, file_ext, readw_loc, flags, logger):
         """ Constructor for FileMover type
             end_file_ext is optional
         """
@@ -15,6 +16,8 @@ class FileMover:
         self._file_queue = queue.Queue()
         self._logger = logger
         self._interim = interim
+        self._readw_loc = readw_loc
+        self._flags = flags
 
         if not isinstance(self._source_dirs, list):
             if isinstance(self._source_dirs, str):
@@ -48,13 +51,47 @@ class FileMover:
         """ process the next file in the queue """
         # get file out of queue
         if not self._file_queue.empty():
-            file = self._file_queue.get_nowait()
-            self.copy_file(file)
+            file = self._file_queue.get(block=True, timeout=None)
+            try:
+                self.copy_file(file.get_src(),
+                            file.get_interim(),
+                            file.get_src_filename(),
+                            file.get_interim_filename(),
+                            )
+
+                self.parse_file(file.get_full_file_interim(),
+                                file.get_dest(),
+                                file.get_full_file_dest()
+                                )
+
+            except Exception as ex:
+                print("Failed to move file: {}".format(file))
+                print("Exception: {}".format(str(ex)))
             #self.parse_file(file)
 
 
-    def copy_file(self, file):
+    def parse_file(self, src, dst, dst_filename):
+        """ parse a file with the given command """
+        # for readw
+        #command = "{} {} {} {}".format(self._readw_loc, ' '.join(self._flags), src, dst)
+        self.create_dirs(dst)
+        command = "{} {} {} {}".format(self._readw_loc, self._flags, dst_filename, src)
+        subprocess.call(command, shell=True)
+
+
+    def create_dirs(self, dirs):
+        if not self.check_dir_exists(dirs):
+            os.makedirs(dirs)
+
+        os.chmod(dirs, 666)
+
+    def copy_file(self, src, dst, src_filename, dst_filename):
         """ copy file to new destination """
+        if not self.check_dir_exists(dst):
+            os.makedirs(dst)
+
+        os.chmod(dst, 666)
+        copyfile(os.path.join(src, src_filename), os.path.join(dst, dst_filename))
 
 
     def get_files_by_ext(self):
