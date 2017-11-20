@@ -223,11 +223,11 @@ class SettingsFrame(tk.Frame):
             updates UI config values based on values of a Config object
         """
         # remember to enable, insert, then disable the field - user shouldnt be allowed to update field
-        self.insert_disabled_field(self.dst_field, config.DST_DIR)
-        self.insert_disabled_field(self.exe_field, config.CONVERTER)
+        self.insert_disabled_field(self.dst_field, config.DST_DIR.replace("/", "\\"))
+        self.insert_disabled_field(self.exe_field, config.CONVERTER.replace("/", "\\"))
+        self.insert_disabled_field(self.interim_field, config.INTERIM.replace("/", "\\"))
         self.interval_slider.set(int(config.INTERVAL))
         self.src_list.delete(0, END)
-        print(config.SRC_DIRS)
         for src in config.SRC_DIRS:
             self.src_list.insert(END, str(src))
 
@@ -238,12 +238,12 @@ class SettingsFrame(tk.Frame):
         """
 
         dst = self.dst_field.get("1.0", END)
+        interim = self.interim_field.get("1.0", END)
         exe = self.exe_field.get("1.0", END)
         src = self.src_list.get(0, END)
         interval = self.interval
         ext = 'raw'
-        interim = ''
-        flags = '--compress --mzXML'
+        flags = 'a'#--compress --mzXML'
 
         config.set_config(src, dst, exe, flags, interim, ext, interval)
 
@@ -254,12 +254,27 @@ class SettingsFrame(tk.Frame):
         folder_name = tkfd.askdirectory()
         if(folder_name):
             #enable textbox to allow insertion
-            self.dst_field.configure(state="normal")
-            self.dst_field.delete("0.0", END)
-            self.dst_field.insert("0.0", str(folder_name))
-            ToolTip(self.dst_field, str(folder_name))
+            #self.dst_field.configure(state="normal")
+            self.insert_disabled_field(self.dst_field, str(folder_name).replace("/","\\"))
+            #self.dst_field.delete("0.0", END)
+            #self.dst_field.insert("0.0", str(folder_name).replace("/", "\\"))
+            ToolTip(self.dst_field, str(folder_name).replace("/","\\"))
             #disable to prevent direct user input
-            self.dst_field.configure(state="disabled")
+            #self.dst_field.configure(state="disabled")
+        else:
+            print("No folder selected!")
+
+    def pick_interim_btn_clicked(self):
+        folder_name = tkfd.askdirectory()
+        if(folder_name):
+            #enable textbox to allow insertion
+            #self.dst_field.configure(state="normal")
+            self.insert_disabled_field(self.interim_field, str(folder_name).replace("/","\\"))
+            #self.dst_field.delete("0.0", END)
+            #self.dst_field.insert("0.0", str(folder_name).replace("/", "\\"))
+            ToolTip(self.interim_field, str(folder_name).replace("/","\\"))
+            #disable to prevent direct user input
+            #self.dst_field.configure(state="disabled")
         else:
             print("No folder selected!")
 
@@ -289,7 +304,7 @@ class SettingsFrame(tk.Frame):
         if(folder_name):
             srcs = self.src_list.get(0, END)
             if folder_name not in srcs:
-                self.src_list.insert(END, folder_name)
+                self.src_list.insert(END, str(folder_name).replace("/","\\"))
         else:
             print("No folder selected!")
 
@@ -316,7 +331,7 @@ class SettingsFrame(tk.Frame):
             self.exe_field.configure(state="normal")
             #text box index location is noted by "row.column"
             self.exe_field.delete("0.0", END)
-            self.exe_field.insert("0.0", str(file_name.name))
+            self.exe_field.insert("0.0", str(file_name.name).replace("/","\\"))
             ToolTip(self.exe_field, str(file_name.name))
             self.exe_field.configure(state="disabled")
 
@@ -377,7 +392,21 @@ class SettingsFrame(tk.Frame):
             self, text="Choose Location", width=15, command=self.choose_readw_loc
         )
         self.pick_exe_btn.grid(row=4, column=2)
+        ### END pick_exe section ###
 
+        ### start pick_exe section ###
+        self.interim_lbl = tk.Label(self, text="Interim Location")
+        self.interim_lbl.configure(background=self["bg"])
+        self.interim_lbl.grid(row=5, column = 0, padx=20, pady=(0,0), sticky=W)
+
+        self.interim_field = tk.Text(self, height=self.btn_height, width=60, state="disabled")
+        self.interim_field.grid(row=6, column=0, columnspan=1, padx=20, sticky="ew")
+        self.interim_field.configure(background="lightgray")
+
+        self.pick_interim_btn = tk.Button(
+            self, text="Choose Interim", width=15, command=self.pick_interim_btn_clicked
+        )
+        self.pick_interim_btn.grid(row=6, column=2)
         ### END pick_exe section ###
 
         ### start pick destination section ###
@@ -385,16 +414,16 @@ class SettingsFrame(tk.Frame):
         ##It will appear centered in row 0 and row 1.
         self.dst_lbl = tk.Label(self, text="Destination")
         self.dst_lbl.configure(background=self["bg"])
-        self.dst_lbl.grid(row=5, column=0, columnspan=2, padx=20, pady=0, sticky="w")
+        self.dst_lbl.grid(row=7, column=0, columnspan=2, padx=20, pady=0, sticky="w")
 
         self.dst_field = tk.Text(self, height=self.btn_height, width=50, state="disabled")
-        self.dst_field.grid(row=6, column = 0, columnspan=1, padx=20, pady=(0,20), sticky="ew")
+        self.dst_field.grid(row=8, column = 0, columnspan=1, padx=20, pady=(0,20), sticky="ew")
         self.dst_field.configure(background="lightgray")
 
         self.pick_dst_btn = tk.Button(
             self, text="Choose Destination", width=15, command=self.pick_dst_btn_clicked
         )
-        self.pick_dst_btn.grid(row=6, column=2, pady=(0,20))
+        self.pick_dst_btn.grid(row=8, column=2, pady=(0,20))
         ###end pick desitnation section ###
 
         ### start interval section ###
@@ -402,15 +431,15 @@ class SettingsFrame(tk.Frame):
 
         self.interval_lbl = tk.Label(self, text="Transfer Interval (Minutes)")
         self.interval_lbl.configure(background=self["bg"])
-        self.interval_lbl.grid(row=7, column=0, columnspan=2, padx=20, pady=0, sticky="w")
+        self.interval_lbl.grid(row=9, column=0, columnspan=2, padx=20, pady=0, sticky="w")
 
         self.interval_slider = tk.Scale(self, from_=5, to=45, orient=HORIZONTAL, command=self.interval_val_changed)
-        self.interval_slider.grid(row=8, column=0, padx=20, pady=(0,20), sticky="ew")
+        self.interval_slider.grid(row=10, column=0, padx=20, pady=(0,20), sticky="ew")
 
         ### end interval section ###
 
         self.parallel_frame = tk.Frame(self)
-        self.parallel_frame.grid(row=8, column=2)
+        self.parallel_frame.grid(row=10, column=2)
 
         self.parallelize = tk.IntVar()
 

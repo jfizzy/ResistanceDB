@@ -1,10 +1,8 @@
-import os
 import subprocess
 import mia_backend.fileutil
 
 class FileParser:
     """ applies some file permuting action to a directory of files
-    
         performs the action in format [action] [flags] [src file] [dest file]
      """
 
