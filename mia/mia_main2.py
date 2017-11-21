@@ -1,0 +1,30 @@
+from PyQt5 import QtWidgets
+from gui.gui2 import Ui_MainWindow
+import sys
+from mia_backend.mia_manager import MiaManager
+
+class ApplicationWindow(QtWidgets.QMainWindow):
+    def __init__(self, parent):
+        super(ApplicationWindow, self).__init__()
+        self.parent = parent
+        self.main_window = Ui_MainWindow(self)
+        self.main_window.setupUi(self)
+        self.main_window.loaded()
+        self._shutdown = False
+
+    def shut_er_down(self):
+         self._shutdown = True
+         self.parent.setQuitOnLastWindowClosed(True)
+         QtWidgets.QMainWindow.close(self)
+
+def main():
+    app = QtWidgets.QApplication(sys.argv)
+    #window = QWidgets.QDialog()
+    #app.setWindowFlags(QtCore.Qt.Tool)
+    app.setQuitOnLastWindowClosed(False)
+    application = ApplicationWindow(app)
+    application.show()
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()

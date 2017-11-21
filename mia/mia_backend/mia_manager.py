@@ -42,8 +42,10 @@ class MiaManager():
         """ get configuration settings """
         return self._config
 
-    def start(self, config):
-        """ starts mia """        
+    def start(self, config, callback):
+        """ starts mia 
+            callback passed by caller, mia will call this callback on successfull execution
+        """        
         if self.check_config(config):
             try:
                 # file mover will throw exception if directories are not found
@@ -53,8 +55,8 @@ class MiaManager():
                 self._config.cpy_config(config)
                 self._config.write_config(self.LOG_FILE)
                 self._parent.update_status("Config valid. Starting Mia!")
-                self._parent.mia_starting()
                 self._work_queue.put(Instruction.START)
+                callback()
             except FileMoverException as ex:
                 self._parent.update_status(ex)
 
@@ -102,14 +104,14 @@ class MiaManager():
         self._running = False
         print("Received shutdown signal")
 
-    def stop(self):
+    def stop(self, callback):
         """ GUI is requesting mia shut down """
         self._work_queue.put(Instruction.QUIT, block=True, timeout=None)
         if self._transfer_thread and self._transfer_thread.is_alive():
             self._transfer_thread.join()
 
         self._parent.update_status("Mia has stopped transfers.")
-        self._parent.mia_stopped()
+        callback()
 
     def shutdown(self):
         """ shuts down all worker and timer threads, informs parent when threads have joined """
@@ -137,7 +139,8 @@ class MiaManager():
             print("update interval!")
         elif instruct == Instruction.QUIT:
             self._running = False
-            self._transfer_thread.cancel()
+            if self._transfer_thread:
+                self._transfer_thread.cancel()
             print("quit!")
 
     def check_config(self, config):
