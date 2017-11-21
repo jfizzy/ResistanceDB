@@ -11,6 +11,7 @@ class Config:
     # time between runs
     INTERVAL = 10
     DATABASE = None
+    THREADED = False
 
     def __init__(self, logfile):
         self.logger = logfile
@@ -28,9 +29,10 @@ class Config:
         self.FILE_EXT = config.FILE_EXT
         self.INTERVAL = config.INTERVAL
         self.DATABASE = config.DATABASE
+        self.THREADED = config.THREADED
 
     ## TODO check input
-    def set_config(self, src_dirs, dst, converter, converter_flags, interim, file_ext, interval, db):
+    def set_config(self, src_dirs, dst, converter, converter_flags, interim, file_ext, interval, db, threaded):
         """
             sets config values directly
         """
@@ -42,6 +44,7 @@ class Config:
         self.INTERIM = interim.strip()
         self.FILE_EXT = file_ext.strip()
         self.INTERVAL = int(interval)
+        self.THREADED = threaded
 
     def write_config(self, cfgfile):
         """
@@ -72,6 +75,9 @@ class Config:
 
                 if self.DATABASE:
                     cfg.write("DATABASE={}\n".format(self.DATABASE))
+
+                if self.THREADED is not None:
+                    cfg.write("THREADED={}\n".format(self.THREADED))
         except:
             self.logger.error("Error writing config")
 
@@ -113,6 +119,15 @@ class Config:
                 elif re.match('^INTERVAL=[0-9]+$', line):
                     # temporary folder
                     self.set_interval(line.split('=')[1])
+                elif re.match('^THREADED=(True|False)', line):
+                    self.set_threaded(line.split('=')[1])
+
+    def set_threaded(self, line):
+        self.logger.info(' Config >>> Threaded: {}'.format(line))
+        try:
+            self.THREADED = bool(line)
+        except:
+            self.THREADED = False
 
     def add_db(self, line):
         self.logger.info(' Config >>> Database: {}'.format(line))
