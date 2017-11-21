@@ -44,6 +44,7 @@ class FileMover:
         self._logger.info("Extension: {}".format(self._file_ext))
 
         files = self.get_files_by_ext()
+        print(files)
 
         # fill file queue
         for file in files:
@@ -53,20 +54,25 @@ class FileMover:
         """ indicates if there are still files left to move """
         return not self._file_queue.empty()
 
-    def process_next_file(self):
+    def process_next_file(self, callback):
         """ process the next file in the queue """
         # get file out of queue
-        print("Proces_file")
         if not self._file_queue.empty():
             file = self._file_queue.get(block=True, timeout=None)
+            callback(file)
             try:
-                self.copy_file(file.get_src(),
-                            file.get_interim(),
-                            file.get_src_filename(),
-                            file.get_interim_filename(),
-                            )
+                if self._database:
+                    if not self._database.file_parsed(file):
+                        self.copy_file(file.get_src(),
+                                    file.get_interim(),
+                                    file.get_src_filename(),
+                                    file.get_interim_filename(),
+                        )
 
-                self.parse_file(file)
+                        self.parse_file(file)
+                    else:
+                        print("Not parsing file. Exists in database")
+                        #self._logger.warning("Did not parse file {}\nDatabase not initialized.".format(file.get_src_filename()))
 
                 # clean up file
                 try:
@@ -85,7 +91,6 @@ class FileMover:
         """ parse a file with the given command """
         # for readw
         #command = "{} {} {} {}".format(self._readw_loc, ' '.join(self._flags), src, dst)
-        print("parse file")
         if file:
             src = file.get_full_file_interim()
             dst = file.get_dest()
@@ -93,10 +98,12 @@ class FileMover:
 
             try:
                 self.create_dirs(dst)
+                #currently formatted for 7zip
                 command = "{} {} {} {}".format(self._readw_loc, self._flags, dst_filename, src)
                 subprocess.call(command, shell=True)
                 #insert into database
-                self._database.insert(file)
+                if self._database:
+                    self._database.insert(file)
             except Exception as ex:
                 self._logger.error("Unable to convert file: {} - {}".format(src, str(ex)))
 
@@ -114,6 +121,7 @@ class FileMover:
             os.makedirs(dst)
 
         os.chmod(dst, 666)
+        print(os.path.join(os.path.join(dst,dst_filename)))
         copyfile(os.path.join(src, src_filename), os.path.join(dst, dst_filename))
 
 

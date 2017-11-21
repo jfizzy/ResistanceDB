@@ -55,8 +55,12 @@ class MiaManager():
                 # file_mover = FileMover(config.SRC_DIRS, config.INTERIM,
                 # config.FILE_EXT, None, self._logger)
                 # file_mover.move_files()
+                self._config_lock.acquire()
+
                 self._config.cpy_config(config)
                 self._config.write_config(self.LOG_FILE)
+
+                self._config_lock.release()
                 self._parent.update_status("Config valid. Starting Mia!")
 
                 self._work_queue.put(Instruction.START)
@@ -87,13 +91,15 @@ class MiaManager():
         #file_movers = file_mover.FileMover(src, self._config.DST_DIR, self._config.FILE_EXT, None
         #self._transfer_thread = threading.Timer(0, self.do_transfer, {}, {})
 
+        print("Running: {} Files left:{}".format(self._running, file_mover.files_left()))
         # while we are still running and have files to move
         while self._running and file_mover.files_left():
-            print("Processing a file...")
-            file_mover.process_next_file()
+            file_mover.process_next_file(lambda x : self._parent.update_status_bar("Processing file {}".format(x.get_full_file_src())))
 
         # if still running at end of file, reset interval to do another move
         if self._running:
+            self._parent.update_status("Finished parsing raw files. Waiting {} minutes to check again.".format(self._config.INTERVAL))
+            self._parent.update_status_bar("Running... waiting to transfer files.")
             self._transfer_thread = threading.Timer(self._config.INTERVAL * 60, self.transfer, {}, {})
             self._transfer_thread.start()
 
@@ -111,6 +117,10 @@ class MiaManager():
     def stop(self, callback):
         """ GUI is requesting mia shut down """
         self._work_queue.put(Instruction.QUIT, block=True, timeout=None)
+
+        self._parent.update_status("Quit signal received, waiting for mia to finish processes...")
+        self._parent.mia_stopping()
+
         if self._transfer_thread and self._transfer_thread.is_alive():
             self._transfer_thread.join()
 
@@ -122,6 +132,9 @@ class MiaManager():
         self._work_queue.put(Instruction.QUIT, block=True, timeout=None)
         self._work_queue.put(Instruction.SHUTDOWN, block=True, timeout=None)
         self._parent.update_status("Shutdown signal received, waiting for mia to finish processes...")
+
+        self._parent.mia_stopping()
+
         if self._transfer_thread and self._transfer_thread.is_alive():
             self._transfer_thread.join()
 

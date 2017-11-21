@@ -36,8 +36,10 @@ class Ui_MainWindow(object):
         self.systemTray.show()
 
     def loaded(self):
+        self.statusbar.showMessage("Loading")
         self._manager = MiaManager(self)
         self.update_config(self._manager.get_config())
+        self.statusbar.showMessage("Stopped")
 
     def shutdown(self):
         self._manager.shutdown()
@@ -85,8 +87,8 @@ class Ui_MainWindow(object):
             srcs.append(self.srcListView.item(index).text())
 
         interval = self.intervalSlider.value()
-        ext = 'raw'
-        flags = "--compress --mzXML"
+        ext = 'raw'#'raw'
+        flags = "a"#"--compress --mzXML"
 
         config.set_config(srcs, dst, exe, flags, interim, ext, interval, database)
 
@@ -125,6 +127,9 @@ class Ui_MainWindow(object):
 
             item = QtWidgets.QListWidgetItem(dir_name)
             self.srcListView.addItem(item)
+
+    def update_status_bar(self, msg):
+        self.statusbar.showMessage(msg)
 
     def update_status(self, msg):
         msg = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S - ') + msg
@@ -181,6 +186,7 @@ class Ui_MainWindow(object):
         self.startMiaBtn.setEnabled(False)
         self.stopMiaBtn.setEnabled(True)
         self.restartMiaBtn.setEnabled(True)
+        self.update_status_bar("Transferring files...")
 
     def mia_reset_btn_clicked(self):
         """ """
@@ -190,6 +196,14 @@ class Ui_MainWindow(object):
         """ """
         self._manager.stop(self.mia_stopped)
 
+    def mia_stopping(self):
+        self.startMiaBtn.setEnabled(False)
+        self.stopMiaBtn.setEnabled(False)
+        self.restartMiaBtn.setEnabled(False)
+        print("Stopping?!?!")
+
+        QtWidgets.qApp.processEvents() 
+
     def mia_stopped(self):
         """ callback for mia backend
             place code here if we want to run code when
@@ -198,6 +212,7 @@ class Ui_MainWindow(object):
         self.startMiaBtn.setEnabled(True)
         self.stopMiaBtn.setEnabled(False)
         self.restartMiaBtn.setEnabled(False)
+        self.update_status_bar("Stopped")
 
     def mia_shutdown_btn_clicked(self):
         """ """
