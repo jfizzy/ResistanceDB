@@ -49,7 +49,7 @@ class MiaManager():
         """ starts mia 
             callback passed by caller, mia will call this callback on successfull execution
         """        
-        if self.check_config(config):
+        if not self._running and self.check_config(config):
             try:
                 # file mover will throw exception if directories are not found
                 # file_mover = FileMover(config.SRC_DIRS, config.INTERIM,
@@ -67,6 +67,8 @@ class MiaManager():
                 callback()
             except FileMoverException as ex:
                 self._parent.update_status(ex)
+        else:
+            self._parent.update_status("Mia is already running.")
 
     def transfer(self):
         """ handles file transfer and file parsing
@@ -94,7 +96,12 @@ class MiaManager():
         print("Running: {} Files left:{}".format(self._running, file_mover.files_left()))
         # while we are still running and have files to move
         while self._running and file_mover.files_left():
-            file_mover.process_next_file(lambda x : self._parent.update_status_bar("Processing file {}".format(x.get_full_file_src())))
+            if self._config.THREADED:
+                print("Requested threaded... Not implemented yet.")
+                #handle threading                
+                file_mover.process_next_file(lambda x : self._parent.update_status_bar("Processing file {}".format(x.get_full_file_src())))
+            else:
+                file_mover.process_next_file(lambda x : self._parent.update_status_bar("Processing file {}".format(x.get_full_file_src())))
 
         # if still running at end of file, reset interval to do another move
         if self._running:

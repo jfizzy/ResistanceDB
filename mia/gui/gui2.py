@@ -70,6 +70,9 @@ class Ui_MainWindow(object):
                 item = QtWidgets.QListWidgetItem(src.replace("/","\\"))
                 self.srcListView.addItem(item)
 
+        if config.THREADED is not None:
+            self.parallelCheckBox.setChecked(config.THREADED)
+
 
     def collect_config(self, config):
         """
@@ -89,8 +92,9 @@ class Ui_MainWindow(object):
         interval = self.intervalSlider.value()
         ext = 'raw'#'raw'
         flags = "a"#"--compress --mzXML"
+        threaded = self.parallelCheckBox.isChecked()
 
-        config.set_config(srcs, dst, exe, flags, interim, ext, interval, database)
+        config.set_config(srcs, dst, exe, flags, interim, ext, interval, database, threaded)
 
     def systray_clicked(self, event):
         """ user clicked on system tray icon, ensure it wasn't a context menu click, otherwise show """

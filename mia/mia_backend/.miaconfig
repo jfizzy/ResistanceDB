@@ -7,3 +7,4 @@ CONVERTER_FLAGS=a
 CONVERTER=7z.exe
 EXT=raw
 DATABASE=C:\Users\Tyrone\code\ResistanceDB\mia\files.db
+THREADED=True
