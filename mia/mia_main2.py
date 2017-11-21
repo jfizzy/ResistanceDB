@@ -23,6 +23,7 @@ def main():
     #app.setWindowFlags(QtCore.Qt.Tool)
     app.setQuitOnLastWindowClosed(False)
     application = ApplicationWindow(app)
+    #application.setWindowIcon(QtWidgets.QIcon("mia_backend/mia.gif"))
     application.show()
     sys.exit(app.exec_())
 

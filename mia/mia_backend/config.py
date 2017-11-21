@@ -9,8 +9,8 @@ class Config:
     INTERIM = None
     FILE_EXT = None
     # time between runs
-    # TODO: REMEMBER TO ADD A CHECK FOR THIS VARIABLE
     INTERVAL = 10
+    DATABASE = None
 
     def __init__(self, logfile):
         self.logger = logfile
@@ -27,15 +27,17 @@ class Config:
         self.INTERIM = config.INTERIM
         self.FILE_EXT = config.FILE_EXT
         self.INTERVAL = config.INTERVAL
+        self.DATABASE = config.DATABASE
 
     ## TODO check input
-    def set_config(self, src_dirs, dst, converter, converter_flags, interim, file_ext, interval):
+    def set_config(self, src_dirs, dst, converter, converter_flags, interim, file_ext, interval, db):
         """
             sets config values directly
         """
         self.SRC_DIRS= [src.strip() for src in src_dirs]
         self.DST_DIR = dst.strip()
         self.CONVERTER = converter.strip()
+        self.DATABASE = db.strip()
         self.CONVERTER_FLAGS = converter_flags.strip()
         self.INTERIM = interim.strip()
         self.FILE_EXT = file_ext.strip()
@@ -49,13 +51,27 @@ class Config:
             with open(cfgfile, "w") as cfg:
                 for src in self.SRC_DIRS:
                     cfg.write("SRC_DIR={}\n".format(src))
-                    
-                cfg.write("INTERIM={}\n".format(self.INTERIM))
-                cfg.write("DST_DIR={}\n".format(self.DST_DIR))
-                cfg.write("INTERVAL={}\n".format(self.INTERVAL))
-                cfg.write("CONVERTER_FLAGS={}\n".format(self.CONVERTER_FLAGS))
-                cfg.write("CONVERTER={}\n".format(self.CONVERTER))
-                cfg.write("EXT={}\n".format(self.FILE_EXT))
+                
+                if self.INTERIM:
+                    cfg.write("INTERIM={}\n".format(self.INTERIM))
+                
+                if self.DST_DIR:
+                    cfg.write("DST_DIR={}\n".format(self.DST_DIR))
+                
+                if self.INTERVAL:
+                    cfg.write("INTERVAL={}\n".format(self.INTERVAL))
+
+                if self.CONVERTER_FLAGS:
+                    cfg.write("CONVERTER_FLAGS={}\n".format(self.CONVERTER_FLAGS))
+
+                if self.CONVERTER:
+                    cfg.write("CONVERTER={}\n".format(self.CONVERTER))
+
+                if self.FILE_EXT:
+                    cfg.write("EXT={}\n".format(self.FILE_EXT))
+
+                if self.DATABASE:
+                    cfg.write("DATABASE={}\n".format(self.DATABASE))
         except:
             self.logger.error("Error writing config")
 
@@ -77,6 +93,8 @@ class Config:
                     # empty line
                 elif re.match('^SRC_DIR=.+$', line):
                     self.add_source_dir(line.split('=')[1])
+                elif re.match('^DATABASE=.+$', line):
+                    self.add_db(line.split('=')[1])
                 elif re.match('^FILE_EXT=.+$', line):
                     self.add_file_ext(line.split('=')[1])
                 elif re.match('^DST_DIR=.+$', line):
@@ -95,8 +113,13 @@ class Config:
                 elif re.match('^INTERVAL=[0-9]+$', line):
                     # temporary folder
                     self.set_interval(line.split('=')[1])
+
+    def add_db(self, line):
+        self.logger.info(' Config >>> Database: {}'.format(line))
+        self.DATABASE = line
+    
     def set_interval(self, line):
-        self.logger.info(' Config >>> {}'.format(line))
+        self.logger.info(' Config >>> Interval: {}'.format(line))
         try: 
             val = int(line)
             self.INTERVAL = val

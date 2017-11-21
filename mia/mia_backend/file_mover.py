@@ -5,10 +5,11 @@ import subprocess
 from shutil import copyfile
 
 from mia_backend.raw_file import RawFile, RawFileException
+from mia_backend.mia_db import MiaDB
 
 class FileMover:
     """ Moves files from source to destination of type file_ext """
-    def __init__(self, srcs, interim, dest, file_ext, readw_loc, flags, logger):
+    def __init__(self, srcs, interim, dest, file_ext, readw_loc, flags, logger, database):
         """ Constructor for FileMover type
             end_file_ext is optional
         """
@@ -18,6 +19,11 @@ class FileMover:
         self._interim = interim
         self._readw_loc = readw_loc
         self._flags = flags
+
+        if database:
+            self._database = MiaDB(database)
+        else:
+            self._database = None
 
         if not isinstance(self._source_dirs, list):
             if isinstance(self._source_dirs, str):
@@ -50,6 +56,7 @@ class FileMover:
     def process_next_file(self):
         """ process the next file in the queue """
         # get file out of queue
+        print("Proces_file")
         if not self._file_queue.empty():
             file = self._file_queue.get(block=True, timeout=None)
             try:
@@ -59,10 +66,14 @@ class FileMover:
                             file.get_interim_filename(),
                             )
 
-                self.parse_file(file.get_full_file_interim(),
-                                file.get_dest(),
-                                file.get_full_file_dest()
-                                )
+                self.parse_file(file)
+
+                # clean up file
+                try:
+                    tmp = file.get_full_file_interim()
+                    os.remove(tmp)
+                except Exception as ex:
+                    self._logger.error("Unable to remove temporary file: {} - {}".format(tmp, str(ex)))
 
             except Exception as ex:
                 print("Failed to move file: {}".format(file))
@@ -70,13 +81,25 @@ class FileMover:
             #self.parse_file(file)
 
 
-    def parse_file(self, src, dst, dst_filename):
+    def parse_file(self, file): #src, dst, dst_filename):
         """ parse a file with the given command """
         # for readw
         #command = "{} {} {} {}".format(self._readw_loc, ' '.join(self._flags), src, dst)
-        self.create_dirs(dst)
-        command = "{} {} {} {}".format(self._readw_loc, self._flags, dst_filename, src)
-        subprocess.call(command, shell=True)
+        print("parse file")
+        if file:
+            src = file.get_full_file_interim()
+            dst = file.get_dest()
+            dst_filename = file.get_full_file_dest()
+
+            try:
+                self.create_dirs(dst)
+                command = "{} {} {} {}".format(self._readw_loc, self._flags, dst_filename, src)
+                subprocess.call(command, shell=True)
+                #insert into database
+                self._database.insert(file)
+            except Exception as ex:
+                self._logger.error("Unable to convert file: {} - {}".format(src, str(ex)))
+
 
 
     def create_dirs(self, dirs):

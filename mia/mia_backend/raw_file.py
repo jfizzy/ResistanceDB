@@ -29,6 +29,9 @@ class RawFile():
         #gen_new_name uses both creation date and user, generate it last
         self._new_name = self.gen_new_name()
 
+    def get_formatted_cdate(self, format):
+        return datetime.fromtimestamp(self._creation_date).strftime(format)
+
     def gen_user(self):
         """ get the user name from the subdirectories. Assumed to be the second parent directory of the file """
         split_src = self._src.rsplit("\\", 2)

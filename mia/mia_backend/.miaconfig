@@ -6,3 +6,4 @@ INTERVAL=24
 CONVERTER_FLAGS=--compress --mzXML
 CONVERTER=7z.exe
 EXT=raw
+DATABASE=C:\Users\Tyrone\code\ResistanceDB\mia\files.db

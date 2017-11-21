@@ -48,13 +48,25 @@ class Ui_MainWindow(object):
             updates UI config values based on values of a Config object
         """
         # remember to enable, insert, then disable the field - user shouldnt be allowed to update field
-        self.interimDirectoryField.setText(config.INTERIM.replace("/","\\"))
-        self.destinationDirectoryField.setText(config.DST_DIR.replace("/","\\"))
-        self.readwLocField.setText(config.CONVERTER.replace("/","\\"))
-        self.intervalSlider.setSliderPosition(config.INTERVAL)
-        for src in config.SRC_DIRS:
-            item = QtWidgets.QListWidgetItem(src.replace("/","\\"))
-            self.srcListView.addItem(item)
+        if config.INTERIM:
+            self.interimDirectoryField.setText(config.INTERIM.replace("/","\\"))
+        
+        if config.DST_DIR:
+            self.destinationDirectoryField.setText(config.DST_DIR.replace("/","\\"))
+
+        if config.CONVERTER:
+            self.readwLocField.setText(config.CONVERTER.replace("/","\\"))
+
+        if config.INTERVAL:
+            self.intervalSlider.setSliderPosition(config.INTERVAL)
+        
+        if config.DATABASE:
+            self.databaseField.setText(config.DATABASE.replace("/","\\"))
+
+        if config.SRC_DIRS:
+            for src in config.SRC_DIRS:
+                item = QtWidgets.QListWidgetItem(src.replace("/","\\"))
+                self.srcListView.addItem(item)
 
 
     def collect_config(self, config):
@@ -65,6 +77,7 @@ class Ui_MainWindow(object):
         dst = self.destinationDirectoryField.text()
         interim = self.interimDirectoryField.text()
         exe = self.readwLocField.text()
+        database = self.databaseField.text()
 
         srcs = []
 
@@ -75,7 +88,7 @@ class Ui_MainWindow(object):
         ext = 'raw'
         flags = "--compress --mzXML"
 
-        config.set_config(srcs, dst, exe, flags, interim, ext, interval)
+        config.set_config(srcs, dst, exe, flags, interim, ext, interval, database)
 
     def systray_clicked(self, event):
         """ user clicked on system tray icon, ensure it wasn't a context menu click, otherwise show """
@@ -141,6 +154,17 @@ class Ui_MainWindow(object):
         dir_name = QtWidgets.QFileDialog.getExistingDirectory()
         if dir_name:
             self.destinationDirectoryField.setText(dir_name.replace("/","\\"))
+
+    def database_btn_clicked(self):
+        """ """
+        dlg = QtWidgets.QFileDialog(self.parent)
+        dlg.setNameFilters(["Sqlite3 Database Files (*.db)"])
+        dlg.selectNameFilter("Sqlite3 Database Files (*.db)")
+        
+        dlg.exec_()
+        files = dlg.selectedFiles()
+        if files:
+            self.databaseField.setText(files[0].replace("/","\\"))
 
     def interval_slider_changed(self):
         """ """
@@ -255,8 +279,8 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.readwLocField, 4, 0, 1, 3)
         self.intervalLbl = QtWidgets.QLabel(self.groupBox)
         self.intervalLbl.setObjectName("intervalLbl")
+        self.gridLayout.addWidget(self.intervalLbl, 6, 0, 1, 1)
 
-        self.gridLayout.addWidget(self.intervalLbl, 5, 0, 1, 1)
         self.addDstBtn = QtWidgets.QPushButton(self.groupBox)
         self.addDstBtn.setObjectName("addDstBtn")
         self.gridLayout.addWidget(self.addDstBtn, 3, 3, 1, 1)
@@ -267,6 +291,23 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.readwLocBtn, 4, 3, 1, 1)
         self.readwLocBtn.clicked.connect(self.readw_loc_btn_clicked)
 
+
+        ###TEST
+        self.databaseField = QtWidgets.QLineEdit(self.groupBox)
+        self.databaseField.setMinimumSize(QtCore.QSize(0, 25))
+        self.databaseField.setReadOnly(True)
+        self.databaseField.setObjectName("databaseField")
+        self.gridLayout.addWidget(self.databaseField, 5, 0, 1, 3)
+
+        self.databaseBtn = QtWidgets.QPushButton(self.groupBox)
+        self.databaseBtn.setObjectName("databaseBtn")
+        self.gridLayout.addWidget(self.databaseBtn, 5, 3, 1, 1)
+
+        ##fix this
+        self.databaseBtn.clicked.connect(self.database_btn_clicked)
+
+        ###END TEST
+
         self.intervalSlider = QtWidgets.QSlider(self.groupBox)
         self.intervalSlider.setMinimum(5)
         self.intervalSlider.setSliderPosition(25)
@@ -274,7 +315,7 @@ class Ui_MainWindow(object):
         self.intervalSlider.setObjectName("intervalSlider")
         self.intervalSlider.valueChanged.connect(self.interval_slider_changed)
 
-        self.gridLayout.addWidget(self.intervalSlider, 5, 1, 1, 2)
+        self.gridLayout.addWidget(self.intervalSlider, 6, 1, 1, 2)
         self.addSrcBtn = QtWidgets.QPushButton(self.groupBox)
         self.addSrcBtn.setMinimumSize(QtCore.QSize(0, 25))
         self.addSrcBtn.setObjectName("addSrcBtn")
@@ -286,32 +327,32 @@ class Ui_MainWindow(object):
         self.parallelCheckBox.setStyleSheet("spacing: 80%;")
         self.parallelCheckBox.setObjectName("parallelCheckBox")
         self.parallelCheckBox.stateChanged.connect(self.interval_changed)
-
-        self.gridLayout.addWidget(self.parallelCheckBox, 5, 3, 1, 1)
-        self.label_3 = QtWidgets.QLabel(self.groupBox)
-        self.label_3.setObjectName("label_3")
-        self.gridLayout.addWidget(self.label_3, 7, 0, 1, 1)
+        self.gridLayout.addWidget(self.parallelCheckBox, 6, 3, 1, 1)
+        
+        #self.statusLbl = QtWidgets.QLabel(self.groupBox)
+        #self.statusLbl.setObjectName("statusLbl")
+        #self.gridLayout.addWidget(self.statusLbl, 8, 0, 1, 1)
 
         self.startMiaBtn = QtWidgets.QPushButton(self.groupBox)
         self.startMiaBtn.setObjectName("startMiaBtn")
         self.startMiaBtn.clicked.connect(self.mia_start_btn_clicked)
-        self.gridLayout.addWidget(self.startMiaBtn, 6, 0, 1, 1)
+        self.gridLayout.addWidget(self.startMiaBtn, 7, 0, 1, 1)
 
         self.stopMiaBtn = QtWidgets.QPushButton(self.groupBox)
         self.stopMiaBtn.setObjectName("stopMiaBtn")
-        self.gridLayout.addWidget(self.stopMiaBtn, 6, 1, 1, 1)
+        self.gridLayout.addWidget(self.stopMiaBtn, 7, 1, 1, 1)
         self.stopMiaBtn.setEnabled(False)
         self.stopMiaBtn.clicked.connect(self.mia_stop_btn_clicked)
 
         self.restartMiaBtn = QtWidgets.QPushButton(self.groupBox)
         self.restartMiaBtn.setObjectName("restartMiaBtn")
-        self.gridLayout.addWidget(self.restartMiaBtn, 6, 2, 1, 1)
+        self.gridLayout.addWidget(self.restartMiaBtn, 7, 2, 1, 1)
         self.restartMiaBtn.setEnabled(False)
         self.restartMiaBtn.clicked.connect(self.mia_reset_btn_clicked)
 
         self.shtDownBtn = QtWidgets.QPushButton(self.groupBox)
         self.shtDownBtn.setObjectName("shtDownBtn")
-        self.gridLayout.addWidget(self.shtDownBtn, 6, 3, 1, 1)
+        self.gridLayout.addWidget(self.shtDownBtn, 7, 3, 1, 1)
         self.shtDownBtn.clicked.connect(self.mia_shutdown_btn_clicked)
 
         self.srcListView.raise_()
@@ -323,13 +364,18 @@ class Ui_MainWindow(object):
         self.addDstBtn.raise_()
         self.readwLocField.raise_()
         self.readwLocBtn.raise_()
+
+        ##test
+        self.databaseBtn.raise_()
+        ##test
+
         self.parallelCheckBox.raise_()
         self.intervalSlider.raise_()
         self.intervalLbl.raise_()
         self.statusList.raise_()
         self.startMiaBtn.raise_()
         self.statusList.raise_()
-        self.label_3.raise_()
+        #self.statusLbl.raise_()
         self.stopMiaBtn.raise_()
         self.restartMiaBtn.raise_()
         self.shtDownBtn.raise_()
@@ -361,10 +407,15 @@ class Ui_MainWindow(object):
         self.intervalLbl.setText(_translate("MainWindow", "Interval(minutes):    {}".format(self.intervalSlider.value())))
         self.addDstBtn.setText(_translate("MainWindow", "Choose Destination"))
         self.readwLocBtn.setText(_translate("MainWindow", "Choose ReAdW Loc"))
+        #test
+        self.databaseField.setPlaceholderText(_translate("MainWindow", "Datbase Location"))     
+        self.databaseBtn.setText(_translate("MainWindow", "Database Location"))
+        self.databaseField.setToolTip(_translate("MainWindow", "<html><head/><body><p>The location of the sqlite3 database file to store moved files.</p></body></html>"))        
+        ##
         self.addSrcBtn.setText(_translate("MainWindow", "Add Source"))
         self.parallelCheckBox.setToolTip(_translate("MainWindow", "<html><head/><body><p>To be implemented</p></body></html>"))
         self.parallelCheckBox.setText(_translate("MainWindow", "Paralellize"))
-        self.label_3.setText(_translate("MainWindow", "Status"))
+        #self.statusLbl.setText(_translate("MainWindow", "Status"))
         self.startMiaBtn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Start Mia with current configurations.</p></body></html>"))
         self.startMiaBtn.setText(_translate("MainWindow", "Start Mia"))
         self.stopMiaBtn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Stop Mia. Mia will first finish the last most conversion to ensure no duplicate files. This could take a couple minutes to finish, depending on the size of the raw file.</p></body></html>"))

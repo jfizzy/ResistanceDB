@@ -7,6 +7,7 @@ from mia_backend.file_mover import FileMover, FileMoverException
 #from mia_backend.fileparser import FileParser, FileParserException
 from mia_backend.config import Config
 
+
 class Instruction(Enum):
     """ defines an enum for mia instruction set """
     START = 1
@@ -30,6 +31,8 @@ class MiaManager():
                                 filemode='w')
         self._config = Config(self._logger)
         self._config.read_config(self.LOG_FILE)
+
+        #if self._config.
         self._parent.update_status("Initialized!")
         self._config_lock = threading.Lock()
         self._work_queue = queue.Queue()
@@ -55,6 +58,7 @@ class MiaManager():
                 self._config.cpy_config(config)
                 self._config.write_config(self.LOG_FILE)
                 self._parent.update_status("Config valid. Starting Mia!")
+
                 self._work_queue.put(Instruction.START)
                 callback()
             except FileMoverException as ex:
@@ -69,7 +73,6 @@ class MiaManager():
             do work again.
         """
 
-        print("In transfer!")
         self._config_lock.acquire()
         file_mover = FileMover(self._config.SRC_DIRS,
                                self._config.INTERIM,
@@ -77,7 +80,8 @@ class MiaManager():
                                self._config.FILE_EXT,
                                self._config.CONVERTER,
                                self._config.CONVERTER_FLAGS,
-                               self._logger)
+                               self._logger,
+                               self._config.DATABASE)
 
         self._config_lock.release()
         #file_movers = file_mover.FileMover(src, self._config.DST_DIR, self._config.FILE_EXT, None
@@ -146,6 +150,11 @@ class MiaManager():
     def check_config(self, config):
         """ checks that mia has received the default minimum valid arguments for config """
         valid = True
+
+        if not config.DATABASE or config.DATABASE == '':
+            self._parent.update_status(\
+                "Error detected in config: No Database Selected")
+            valid = False
 
         if not config.SRC_DIRS or len(config.SRC_DIRS) == 0:
             self._parent.update_status(\
