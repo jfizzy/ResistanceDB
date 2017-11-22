@@ -1,12 +1,12 @@
 """ imports """
 from enum import Enum
 import threading
+from multiprocessing import Pool
 import queue
 from mia_backend.ez_logger import EZLogger
 from mia_backend.file_mover import FileMover, FileMoverException
 #from mia_backend.fileparser import FileParser, FileParserException
 from mia_backend.config import Config
-
 
 class Instruction(Enum):
     """ defines an enum for mia instruction set """
@@ -40,6 +40,7 @@ class MiaManager():
         self._worker_thread = threading.Thread(None, self.run, "worker_thread", {}, {})
         self._worker_thread.start()
         self._transfer_thread = None
+        self._max_threads = 3
 
     def get_config(self):
         """ get configuration settings """
@@ -89,19 +90,33 @@ class MiaManager():
                                self._logger,
                                self._config.DATABASE)
 
-        self._config_lock.release()
+        #number of threads is max_threads if threaded, otherwise 1 (synchronous)
+        num_threads = self._max_threads if self._config.THREADED else 1
+
+        self._config_lock.release()        
+        threads = []
+        
         #file_movers = file_mover.FileMover(src, self._config.DST_DIR, self._config.FILE_EXT, None
         #self._transfer_thread = threading.Timer(0, self.do_transfer, {}, {})
 
-        print("Running: {} Files left:{}".format(self._running, file_mover.files_left()))
         # while we are still running and have files to move
         while self._running and file_mover.files_left():
             if self._config.THREADED:
-                print("Requested threaded... Not implemented yet.")
-                #handle threading                
-                file_mover.process_next_file(lambda x : self._parent.update_status_bar("Processing file {}".format(x.get_full_file_src())))
+                for i in range(0, num_threads):
+                    if file_mover.files_left() and self._running:
+                        threads.append(threading.Thread(None, file_mover.process_next_file, "thread_{}".format(i), {None}, {}))
+                        threads[i].start()
+
+                for i in range(0, len(threads)):
+                    if threads[i]:
+                        threads[i].join()
+
+                threads.clear()
             else:
-                file_mover.process_next_file(lambda x : self._parent.update_status_bar("Processing file {}".format(x.get_full_file_src())))
+                file_mover.process_next_file(lambda x : self._parent.update_status_bar("Processing: {}".format(x.get_full_file_src())))
+
+                                #(lambda x : self._parent.update_status("Processing file {}".format(x.get_full_file_src())),))
+                #file_mover.process_next_file(lambda x : self._parent.update_status("Processing file {}".format(x.get_full_file_src())))
 
         # if still running at end of file, reset interval to do another move
         if self._running:
@@ -176,7 +191,7 @@ class MiaManager():
                 "Error detected in config: No Database Selected")
             valid = False
 
-        if not config.SRC_DIRS or len(config.SRC_DIRS) == 0:
+        if not config.SRC_DIRS:
             self._parent.update_status(\
                 "Error detected in config: No Source Directories")
             valid = False

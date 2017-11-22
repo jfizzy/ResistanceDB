@@ -44,7 +44,7 @@ class FileMover:
         self._logger.info("Extension: {}".format(self._file_ext))
 
         files = self.get_files_by_ext()
-        print(files)
+        #print(files)
 
         # fill file queue
         for file in files:
@@ -57,9 +57,11 @@ class FileMover:
     def process_next_file(self, callback):
         """ process the next file in the queue """
         # get file out of queue
+        print("in file mover")
         if not self._file_queue.empty():
             file = self._file_queue.get(block=True, timeout=None)
-            callback(file)
+            if callback:
+                callback(file)
             try:
                 if self._database:
                     if not self._database.file_parsed(file):
@@ -100,7 +102,7 @@ class FileMover:
                 self.create_dirs(dst)
                 #currently formatted for 7zip
                 command = "{} {} {} {}".format(self._readw_loc, self._flags, dst_filename, src)
-                subprocess.call(command, shell=True)
+                subprocess.call(command, shell=False)
                 #insert into database
                 if self._database:
                     self._database.insert(file)

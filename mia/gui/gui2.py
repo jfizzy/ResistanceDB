@@ -70,7 +70,9 @@ class Ui_MainWindow(object):
                 item = QtWidgets.QListWidgetItem(src.replace("/","\\"))
                 self.srcListView.addItem(item)
 
-        if config.THREADED is not None:
+        print("Config.threaded: {} ".format(config.THREADED))
+
+        if config.THREADED is not None and config.THREADED == True:
             self.parallelCheckBox.setChecked(config.THREADED)
 
 
@@ -193,8 +195,12 @@ class Ui_MainWindow(object):
         self.update_status_bar("Transferring files...")
 
     def mia_reset_btn_clicked(self):
-        """ """
-        print("reset")
+        """ reset mia with new settings """
+        self._manager.stop(self.mia_stopped_for_reset)       
+
+    def mia_stopped_for_reset(self):
+        """ simulate start button click """
+        self.mia_start_btn_clicked()
 
     def mia_stop_btn_clicked(self):
         """ """
@@ -204,7 +210,6 @@ class Ui_MainWindow(object):
         self.startMiaBtn.setEnabled(False)
         self.stopMiaBtn.setEnabled(False)
         self.restartMiaBtn.setEnabled(False)
-        print("Stopping?!?!")
 
         QtWidgets.qApp.processEvents() 
 
@@ -222,13 +227,17 @@ class Ui_MainWindow(object):
         """ """
         print("shutdown")
 
+    def parallelChecked(self):
+        """"""
+        if self.parallelCheckBox.isChecked():
+            self.update_status("Parallelization checked. Heavy CPU usage may result. Restart Mia to apply.")
+        else:
+            print("Parallization unchecked. Restart Mia to apply.")
+
+
     def interval_changed(self):
         """ """
-        if self.parallelCheckBox.isChecked():
-            print("Checked!")
-        else:
-            print("Unchecked!")
-
+       
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(709, 585)
@@ -345,7 +354,7 @@ class Ui_MainWindow(object):
         self.parallelCheckBox.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.parallelCheckBox.setStyleSheet("spacing: 80%;")
         self.parallelCheckBox.setObjectName("parallelCheckBox")
-        self.parallelCheckBox.stateChanged.connect(self.interval_changed)
+        self.parallelCheckBox.stateChanged.connect(self.parallelChecked)
         self.gridLayout.addWidget(self.parallelCheckBox, 6, 3, 1, 1)
         
         #self.statusLbl = QtWidgets.QLabel(self.groupBox)
