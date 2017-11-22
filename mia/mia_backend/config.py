@@ -125,7 +125,7 @@ class Config:
     def set_threaded(self, line):
         self.logger.info(' Config >>> Threaded: {}'.format(line))
         try:
-            self.THREADED = bool(line)
+            self.THREADED = True if line == "True" else False
         except:
             self.THREADED = False
 
