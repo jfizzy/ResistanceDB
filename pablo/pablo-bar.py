@@ -10,27 +10,18 @@ import pandas as pd
 class DataWrapper:
     def __init__(self):
         self._df = pd.read_csv('test.csv')
-        print(len(self._df.values.tolist()))
         self._x_axis = self._df['compound']
-        print(len(self._x_axis.values.tolist()))
-        print(self._x_axis.values)
         self._samples = self._df.iloc[:,6:]
         
 def main():
     dw = DataWrapper()
     app = dash.Dash()
     
-    data=[go.Scatter(
+    print(dw._samples.columns[0])
+    
+    data=[go.Bar(
             x=dw._x_axis.tolist(),
-            y=dw._samples.values.tolist()[i],
-            text=dw._df[dw._df['rt_diff'] == i]['rt_diff'],
-            mode='lines',
-            opacity=0.7,
-            marker=dict(
-                size=15,
-                line=dict(width=0.5, color='white')
-            ),
-            name=dw._samples.values.tolist()[i][0]
+            y=dw._samples.values.tolist()[i]
         ) for i in dw._samples.index
     ]
     
@@ -39,7 +30,7 @@ def main():
                         showgrid=True,
                         zeroline=True,
                         showline=True,
-                        showticklabels=True,
+                        mirror='ticks',
                         gridcolor='#bdbdbd',
                         gridwidth=0.5,
                         zerolinecolor='#969696',
@@ -52,6 +43,7 @@ def main():
                         showgrid=True,
                         zeroline=True,
                         showline=True,
+                        mirror='ticks',
                         gridcolor='#bdbdbd',
                         gridwidth=2,
                         zerolinecolor='#969696',
@@ -66,21 +58,17 @@ def main():
                         r=5
                     ),
                     legend=dict(
-                        x=0,
+                        x=1,
                         y=0
                     ),
                     hovermode='closest',
                     barmode='group',
                     height=800,
                     width=1600
-                    )
+                )
     
     app.layout = html.Div(children=[
         html.H1(children='Hello Dash'),
-    
-        html.Div(children='''
-            Dash: A web application framework for Python.'''
-        ),
     
         dcc.Graph(
             id='line-plot',
