@@ -3,6 +3,7 @@ import os
 import queue
 import subprocess
 from shutil import copyfile
+import time
 
 from mia_backend.raw_file import RawFile, RawFileException
 from mia_backend.mia_db import MiaDB
@@ -71,9 +72,7 @@ class FileMover:
                                     file.get_src_filename(),
                                     file.get_interim_filename(),
                         )
-                        print("file copied, parsing file...")
                         self.parse_file(file)
-                        print("file parsed?")
                     else:
                         print("Not parsing file. Exists in database")
                         #self._logger.warning("Did not parse file {}\nDatabase not initialized.".format(file.get_src_filename()))
@@ -101,15 +100,19 @@ class FileMover:
             dst_filename = file.get_full_file_dest()
 
             try:
+                print("dst: {} .... src: {}".format(dst, src))
                 self.create_dirs(dst)
                 #currently formatted for 7zip
                 command = "{} {} {} {}".format(self._readw_loc, self._flags, src, dst_filename)
+                print(command)
+                
                 subprocess.call(command, shell=False)
                 #insert into database
                 if self._database:
                     self._database.insert(file)
             except Exception as ex:
                 self._logger.error("Unable to convert file: {} - {}".format(src, str(ex)))
+                print(str(ex))
 
 
 
