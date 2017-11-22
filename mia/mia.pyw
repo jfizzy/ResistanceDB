@@ -1,5 +1,5 @@
-from PyQt5 import QtWidgets
-from gui.gui2 import Ui_MainWindow
+from PyQt5 import QtWidgets, QtGui
+from gui.gui import Ui_MainWindow
 import sys
 from mia_backend.mia_manager import MiaManager
 
@@ -11,6 +11,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.main_window.setupUi(self)
         self.main_window.loaded()
         self._shutdown = False
+        self.setWindowIcon(QtGui.QIcon("gui/mia.gif"))
 
     def shut_er_down(self):
          self._shutdown = True

@@ -1,5 +1,5 @@
-SRC_DIR=C:\Users\Tyrone\school\Source
-SRC_DIR=C:\Users\Tyrone\school\Source1
+SRC_DIR=C:\Users\Tyrone\school\Raw Data\Source1
+SRC_DIR=C:\Users\Tyrone\school\Raw Data\Source2
 INTERIM=C:\Users\Tyrone\school\Interim
 DST_DIR=C:\Users\Tyrone\school\Destination
 INTERVAL=24
