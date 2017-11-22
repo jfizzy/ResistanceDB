@@ -113,7 +113,8 @@ class MiaManager():
 
                 threads.clear()
             else:
-                file_mover.process_next_file(lambda x : self._parent.update_status_bar("Processing: {}".format(x.get_full_file_src())))
+                print("Non-threaded")
+                file_mover.process_next_file(lambda x : self._parent.update_status_bar())#"Processing: {}".format(x.get_full_file_src())))
 
                                 #(lambda x : self._parent.update_status("Processing file {}".format(x.get_full_file_src())),))
                 #file_mover.process_next_file(lambda x : self._parent.update_status("Processing file {}".format(x.get_full_file_src())))

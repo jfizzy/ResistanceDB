@@ -60,8 +60,9 @@ class FileMover:
         print("in file mover")
         if not self._file_queue.empty():
             file = self._file_queue.get(block=True, timeout=None)
-            if callback:
-                callback(file)
+            
+            #if callback:
+            #    callback(file)
             try:
                 if self._database:
                     if not self._database.file_parsed(file):
@@ -70,8 +71,9 @@ class FileMover:
                                     file.get_src_filename(),
                                     file.get_interim_filename(),
                         )
-
+                        print("file copied, parsing file...")
                         self.parse_file(file)
+                        print("file parsed?")
                     else:
                         print("Not parsing file. Exists in database")
                         #self._logger.warning("Did not parse file {}\nDatabase not initialized.".format(file.get_src_filename()))
@@ -101,7 +103,7 @@ class FileMover:
             try:
                 self.create_dirs(dst)
                 #currently formatted for 7zip
-                command = "{} {} {} {}".format(self._readw_loc, self._flags, dst_filename, src)
+                command = "{} {} {} {}".format(self._readw_loc, self._flags, src, dst_filename)
                 subprocess.call(command, shell=False)
                 #insert into database
                 if self._database:

@@ -93,7 +93,7 @@ class Ui_MainWindow(object):
 
         interval = self.intervalSlider.value()
         ext = 'raw'#'raw'
-        flags = "a"#"--compress --mzXML"
+        flags = "--compress --mzXML"
         threaded = self.parallelCheckBox.isChecked()
 
         config.set_config(srcs, dst, exe, flags, interim, ext, interval, database, threaded)
