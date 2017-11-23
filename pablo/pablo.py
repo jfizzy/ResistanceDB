@@ -1,7 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-
+from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import plotly.figure_factory as ff
 
@@ -10,10 +10,7 @@ import pandas as pd
 class DataWrapper:
     def __init__(self):
         self._df = pd.read_csv('test.csv')
-        print(len(self._df.values.tolist()))
         self._x_axis = self._df['compound']
-        print(len(self._x_axis.values.tolist()))
-        print(self._x_axis.values)
         self._samples = self._df.iloc[:,6:]
         
 def main():
@@ -22,9 +19,9 @@ def main():
     
     data=[go.Scatter(
             x=dw._x_axis.tolist(),
-            y=dw._samples.values.tolist()[i],
+            y=dw._samples.iloc[i].tolist(),
             text=dw._df[dw._df['rt_diff'] == i]['rt_diff'],
-            mode='lines',
+            mode='markers',
             opacity=0.7,
             marker=dict(
                 size=15,
@@ -66,7 +63,7 @@ def main():
                         r=5
                     ),
                     legend=dict(
-                        x=0,
+                        x=1,
                         y=0
                     ),
                     hovermode='closest',
@@ -78,24 +75,34 @@ def main():
     app.layout = html.Div(children=[
         html.H1(children='Hello Dash'),
     
-        html.Div(children='''
-            Dash: A web application framework for Python.'''
-        ),
-    
         dcc.Graph(
             id='line-plot',
             figure=go.Figure(data=data, layout=layout)
         ),
+        
+        html.Div([
+            dcc.Input(id='my-id', value='something', type="text"),
+            html.Div(id='my-div')
+        ]),
         
         html.Div(children=[
             html.H4(children='Table with the Data'),
             generate_table(dw._samples)
         ])
     ])
+    
+    
         
     app.run_server(debug=True)
     app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"})
     
+    @app.callback(
+        Output(component_id='my-div', component_property='children'),[Input(component_id='my-id', component_property='value')]
+    )
+
+    def update_output_div(input_value):
+        return 'You\'ve entered "{}"'.format(input_value)
+
 def generate_table(df):
     return html.Table(
         # Header
