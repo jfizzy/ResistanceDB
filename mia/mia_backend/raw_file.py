@@ -45,7 +45,7 @@ class RawFile():
 
     def gen_new_name(self):
         """ get the new name of the file at destination directory. year_month_day_orig_name.raw """
-        return datetime.fromtimestamp(self._creation_date).strftime("%Y_%m_%d_{}_".format(self._user)) + self._file_name
+        return datetime.fromtimestamp(self._creation_date).strftime("%Y_%m_%d_") + self._file_name
 
     def gen_dir(self, dir):
         """ get the new directory of the filename, includes subfolders found at source """
