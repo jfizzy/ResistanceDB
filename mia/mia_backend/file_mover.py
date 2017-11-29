@@ -117,8 +117,9 @@ class FileMover:
                 self._logger.error("Unable to convert file: {} - {}".format(src, str(ex)))
                 try:
                     #readw failed, try to remove the stub file that may have been created
-                    print("Subprocess failed to finish, removing stub mzXML file")
+                    print("Subprocess failed to finish, removing stub mzXML file and interim raw file")
                     os.remove(dst_filename)
+                    os.remove(src)
                 except:
                     self._logger.error("ReAdW failed and mia couldn't remove stub file: {}".format(dst_filename))
                 finally:
