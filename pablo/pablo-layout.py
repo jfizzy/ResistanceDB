@@ -31,7 +31,7 @@ class DataWrapper:
     def __init__(self):
         self.df = self.fetch_data(data_file)
         self.compounds = self.get_compounds(self.df)
-        self.sample_matrix = self.get_sample_matrix(self.df)
+        self.sample_matrix = abs(self.get_sample_matrix(self.df))
 
     def get_compounds_list(self):
         '''returns the compounds attribute contents as a list'''
@@ -109,6 +109,7 @@ def draw_full_graph():
         layout=go.Layout(
             title='Sample Compound Intensities',
             showlegend=True,
+            width=1000,
             xaxis=dict(
                 ticks=compounds,
                 showticklabels=True
