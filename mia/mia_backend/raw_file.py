@@ -64,6 +64,10 @@ class RawFile():
             #new_name = self._dst + "\\" + new_name[1] + orig_src[1]
 
         return new_dir
+    
+    def get_new_name(self):
+        """ get the new file name """
+        return self._new_name
 
     def get_interim(self):
         """ get the interim directory """
@@ -87,7 +91,7 @@ class RawFile():
 
     def get_dest_filename(self):
         """ get the destination filename """
-        return self._new_name.replace('.raw', '.zip')
+        return self._new_name.replace('.raw', '.mzXML')
 
     def get_full_file_src(self):
         """ returns the full path to the source including filename """

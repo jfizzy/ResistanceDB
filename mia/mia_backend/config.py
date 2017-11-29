@@ -5,9 +5,9 @@ class Config:
     SRC_DIRS = []
     DST_DIR = None
     CONVERTER = None
-    CONVERTER_FLAGS = []
+    CONVERTER_FLAGS = ["--compress", "--mzXML"]
     INTERIM = None
-    FILE_EXT = None
+    FILE_EXT = "raw"
     # time between runs
     INTERVAL = 10
     DATABASE = None
@@ -151,10 +151,9 @@ class Config:
         #line = line.replace('\\', '\\\\')
         #self.logger.info(line)
         if os.path.isdir(line):
-            self.logger.info('found a source dir')
             self.SRC_DIRS.append(line)
             return
-        self.logger.info('directory given could not be resolved')
+        self.logger.info('{} directory given could not be resolved'.format(line))
 
     def set_destination_dir(self, line):
         self.logger.info(' Config >>>'+line)
@@ -176,7 +175,6 @@ class Config:
     def set_interim_dir(self, line):
         self.logger.info(' Config >>>'+line)
         if os.path.isdir(line):
-            self.logger.info(' Config >>> found the interim directory')
             self.INTERIM = line
             return
         self.logger.warning(' Config >>> could not resolve the interim directory')
@@ -193,6 +191,7 @@ class Config:
         msg = msg + "Interim Directory: {}\n".format(self.INTERIM)
         msg = msg + "File extension: {}\n".format(self.FILE_EXT) 
         msg = msg + "Running on interval of: {} minutes\n".format(self.INTERVAL)
+        msg = msg + "Threaded: {}".format("Yes" if self.THREADED else "No")
         
 
         return str(msg)

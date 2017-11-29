@@ -73,16 +73,18 @@ class FileMover:
                                     file.get_interim_filename(),
                         )
                         self.parse_file(file)
+
+                         # clean up file
+                        try:
+                            tmp = file.get_full_file_interim()
+                            dst = file.get_dest()
+                            name = file.get_new_name()
+                            os.rename(tmp, os.path.join(dst, name))
+                        except Exception as ex:
+                            self._logger.error("Unable to move temporary file: {} - {}".format(tmp, str(ex)))
                     else:
                         print("Not parsing file. Exists in database")
                         #self._logger.warning("Did not parse file {}\nDatabase not initialized.".format(file.get_src_filename()))
-
-                # clean up file
-                try:
-                    tmp = file.get_full_file_interim()
-                    os.remove(tmp)
-                except Exception as ex:
-                    self._logger.error("Unable to remove temporary file: {} - {}".format(tmp, str(ex)))
 
             except Exception as ex:
                 print("Failed to move file: {}".format(file))
@@ -103,9 +105,7 @@ class FileMover:
                 print("dst: {} .... src: {}".format(dst, src))
                 self.create_dirs(dst)
                 #currently formatted for 7zip
-                command = "{} {} {} {}".format(self._readw_loc, self._flags, src, dst_filename)
-                print(command)
-                
+                command = "{} {} {} {}".format(self._readw_loc, self._flags, src, dst_filename)                
                 subprocess.call(command, shell=False)
                 #insert into database
                 if self._database:

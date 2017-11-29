@@ -9,12 +9,15 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import datetime
+import os
 from time import time
 
 from mia_backend.config import Config
 from mia_backend.mia_manager import MiaManager
 
 class Ui_MainWindow(object):
+    ICON = os.path.join(os.path.abspath(os.path.dirname(__file__)), "mia.gif")
+
     def __init__(self, parent):
         self.systemTray = QtWidgets.QSystemTrayIcon()
         self.parent = parent
@@ -26,7 +29,7 @@ class Ui_MainWindow(object):
         closeAction = systrayMenu.addAction("close")
         closeAction.triggered.connect(self.systray_close)
 
-        self.systemTray.setIcon(QtGui.QIcon("gui/mia.gif"))
+        self.systemTray.setIcon(QtGui.QIcon(self.ICON))
         #self.systemTrayIcon.setVisible(True)
 
         self.systemTray.setToolTip("mia")
@@ -108,6 +111,10 @@ class Ui_MainWindow(object):
         self.parent.show()
 
     def systray_close(self):
+        #self.parent.shut_er_down()
+        self.hard_shutdown()
+
+    def hard_shutdown(self):
         #self.parent.shut_er_down()
         msg = "Are you sure you want to quit Mia?\n"
         msg += "All file conversion will be halted."
@@ -225,7 +232,7 @@ class Ui_MainWindow(object):
 
     def mia_shutdown_btn_clicked(self):
         """ """
-        print("shutdown")
+        self.hard_shutdown()
 
     def parallelChecked(self):
         """"""
