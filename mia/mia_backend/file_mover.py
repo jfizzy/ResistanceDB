@@ -58,7 +58,6 @@ class FileMover:
     def process_next_file(self, callback):
         """ process the next file in the queue """
         # get file out of queue
-        print("in file mover")
         if not self._file_queue.empty():
             file = self._file_queue.get(block=True, timeout=None)
             
@@ -105,7 +104,8 @@ class FileMover:
                 print("dst: {} .... src: {}".format(dst, src))
                 self.create_dirs(dst)
                 #currently formatted for 7zip
-                command = "{} {} {} {}".format(self._readw_loc, self._flags, src, dst_filename)                
+                command = "{} {} {} {}".format(self._readw_loc, " ".join(self._flags), src, dst_filename)   
+                print(command)             
                 subprocess.call(command, shell=False)
                 #insert into database
                 if self._database:
@@ -115,8 +115,8 @@ class FileMover:
                 print(str(ex))
 
 
-
     def create_dirs(self, dirs):
+        """ create the directories, if they exist, just set write access """
         if not self.check_dir_exists(dirs):
             os.makedirs(dirs)
 
@@ -128,7 +128,7 @@ class FileMover:
             os.makedirs(dst)
 
         os.chmod(dst, 666)
-        print(os.path.join(os.path.join(dst,dst_filename)))
+        #print(os.path.join(os.path.join(dst,dst_filename)))
         copyfile(os.path.join(src, src_filename), os.path.join(dst, dst_filename))
 
 

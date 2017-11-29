@@ -7,4 +7,4 @@ CONVERTER_FLAGS=--compress --mzXML
 CONVERTER=C:\Users\Tyrone\school\Converter\ReAdW.exe
 EXT=raw
 DATABASE=C:\Users\Tyrone\code\ResistanceDB\mia\files.db
-THREADED=True
+THREADED=False

@@ -5,7 +5,7 @@ class Config:
     SRC_DIRS = []
     DST_DIR = None
     CONVERTER = None
-    CONVERTER_FLAGS = ["--compress", "--mzXML"]
+    CONVERTER_FLAGS = []
     INTERIM = None
     FILE_EXT = "raw"
     # time between runs
