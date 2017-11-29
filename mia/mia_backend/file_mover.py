@@ -71,16 +71,17 @@ class FileMover:
                                     file.get_src_filename(),
                                     file.get_interim_filename(),
                         )
-                        self.parse_file(file)
+                        process_completed = self.parse_file(file)
 
-                         # clean up file
-                        try:
-                            tmp = file.get_full_file_interim()
-                            dst = file.get_dest()
-                            name = file.get_new_name()
-                            os.rename(tmp, os.path.join(dst, name))
-                        except Exception as ex:
-                            self._logger.error("Unable to move temporary file: {} - {}".format(tmp, str(ex)))
+                        # clean up file, if process completed correctly
+                        if process_completed:
+                            try:
+                                tmp = file.get_full_file_interim()
+                                dst = file.get_dest()
+                                name = file.get_new_name()
+                                os.rename(tmp, os.path.join(dst, name))
+                            except Exception as ex:
+                                self._logger.error("Unable to move temporary file: {} - {}".format(tmp, str(ex)))
                     else:
                         print("Not parsing file. Exists in database")
                         #self._logger.warning("Did not parse file {}\nDatabase not initialized.".format(file.get_src_filename()))
@@ -95,6 +96,8 @@ class FileMover:
         """ parse a file with the given command """
         # for readw
         #command = "{} {} {} {}".format(self._readw_loc, ' '.join(self._flags), src, dst)
+        process_complete = True
+
         if file:
             src = file.get_full_file_interim()
             dst = file.get_dest()
@@ -105,14 +108,24 @@ class FileMover:
                 self.create_dirs(dst)
                 #currently formatted for 7zip
                 command = "{} {} {} {}".format(self._readw_loc, " ".join(self._flags), src, dst_filename)   
-                print(command)             
-                subprocess.call(command, shell=False)
+                subprocess.check_call(command, shell=False)
+
                 #insert into database
                 if self._database:
                     self._database.insert(file)
-            except Exception as ex:
+            except subprocess.CalledProcessError as ex:
                 self._logger.error("Unable to convert file: {} - {}".format(src, str(ex)))
-                print(str(ex))
+                try:
+                    #readw failed, try to remove the stub file that may have been created
+                    print("Subprocess failed to finish, removing stub mzXML file")
+                    os.remove(dst_filename)
+                except:
+                    self._logger.error("ReAdW failed and mia couldn't remove stub file: {}".format(dst_filename))
+                finally:
+                    process_complete = False
+
+        return process_complete
+                    
 
 
     def create_dirs(self, dirs):

@@ -126,6 +126,7 @@ class MiaManager():
             else:
                 print("Non-threaded")
                 file_mover.process_next_file(lambda x : self._parent.update_status_bar())#"Processing: {}".format(x.get_full_file_src())))
+                print("Exitting...")
 
                                 #(lambda x : self._parent.update_status("Processing file {}".format(x.get_full_file_src())),))
                 #file_mover.process_next_file(lambda x : self._parent.update_status("Processing file {}".format(x.get_full_file_src())))
@@ -171,7 +172,10 @@ class MiaManager():
         self._parent.mia_stopping()
 
         if self._transfer_thread and self._transfer_thread.is_alive():
+            print("Waiting on transfer thread?")
+            print(self._transfer_thread)
             self._transfer_thread.join()
+            print("Transfer joined")
 
         self._worker_thread.join()
         self._parent.update_status("Mia has shut down.")
