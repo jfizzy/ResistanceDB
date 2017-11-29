@@ -1,9 +1,12 @@
 from PyQt5 import QtWidgets, QtGui
 from gui.gui import Ui_MainWindow
+import os
 import sys
 from mia_backend.mia_manager import MiaManager
 
 class ApplicationWindow(QtWidgets.QMainWindow):
+    ICON = os.path.join(os.path.abspath(os.path.dirname(__file__)), "gui", "mia.gif")
+
     def __init__(self, parent):
         super(ApplicationWindow, self).__init__()
         self.parent = parent
@@ -11,7 +14,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.main_window.setupUi(self)
         self.main_window.loaded()
         self._shutdown = False
-        self.setWindowIcon(QtGui.QIcon("gui/mia.gif"))
+        self.setWindowIcon(QtGui.QIcon(self.ICON))
 
     def shut_er_down(self):
          self._shutdown = True

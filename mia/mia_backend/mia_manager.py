@@ -1,7 +1,7 @@
 """ imports """
 from enum import Enum
 import threading
-from multiprocessing import Pool
+import os
 import queue
 from mia_backend.ez_logger import EZLogger
 from mia_backend.file_mover import FileMover, FileMoverException
@@ -21,16 +21,19 @@ class MiaManager():
         Main backend driver class for the Mia application -
         nterfaces with gui and backend components
     """
-    LOG_FILE = 'mia_backend/.miaconfig'
-
+    LOG_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "mia_log.log")
+    CONFIG = os.path.join(os.path.abspath(os.path.dirname(__file__)), ".miaconfig")
+    
     def __init__(self, parent):
+        print(self.LOG_FILE)
+        print(self.CONFIG)
         self._parent = parent
         self._logger = EZLogger(logger_name="MiaLogger",
-                                log_filename="mia_log.log",
+                                log_filename=self.LOG_FILE,
                                 filesize=10*1024*1024, backupCount=5,
                                 filemode='w')
         self._config = Config(self._logger)
-        self._config.read_config(self.LOG_FILE)
+        self._config.read_config(self.CONFIG)
 
         #if self._config.
         self._parent.update_status("Initialized!")
@@ -40,7 +43,11 @@ class MiaManager():
         self._worker_thread = threading.Thread(None, self.run, "worker_thread", {}, {})
         self._worker_thread.start()
         self._transfer_thread = None
-        self._max_threads = 3
+        self._max_threads = 5
+
+    def get_worker(self):
+        """ get the worker thread """
+        return self._worker_thread
 
     def get_config(self):
         """ get configuration settings """
@@ -50,22 +57,26 @@ class MiaManager():
         """ starts mia 
             callback passed by caller, mia will call this callback on successfull execution
         """        
-        if not self._running and self.check_config(config):
+        if not self._running and (config is None or self.check_config(config)):
             try:
                 # file mover will throw exception if directories are not found
                 # file_mover = FileMover(config.SRC_DIRS, config.INTERIM,
                 # config.FILE_EXT, None, self._logger)
                 # file_mover.move_files()
-                self._config_lock.acquire()
+                if config:
+                    self._config_lock.acquire()
 
-                self._config.cpy_config(config)
-                self._config.write_config(self.LOG_FILE)
+                    self._config.cpy_config(config)
+                    self._config.write_config(self.CONFIG)
 
-                self._config_lock.release()
-                self._parent.update_status("Config valid. Starting Mia!")
+                    self._config_lock.release()
+                    self._parent.update_status("Config valid. Starting Mia!")
+
+                print(str(self._config))
 
                 self._work_queue.put(Instruction.START)
-                callback()
+                if callback:
+                    callback()
             except FileMoverException as ex:
                 self._parent.update_status(ex)
         else:
@@ -115,6 +126,7 @@ class MiaManager():
             else:
                 print("Non-threaded")
                 file_mover.process_next_file(lambda x : self._parent.update_status_bar())#"Processing: {}".format(x.get_full_file_src())))
+                print("Exitting...")
 
                                 #(lambda x : self._parent.update_status("Processing file {}".format(x.get_full_file_src())),))
                 #file_mover.process_next_file(lambda x : self._parent.update_status("Processing file {}".format(x.get_full_file_src())))
@@ -148,7 +160,8 @@ class MiaManager():
             self._transfer_thread.join()
 
         self._parent.update_status("Mia has stopped transfers.")
-        callback()
+        if callback:
+            callback()
 
     def shutdown(self):
         """ shuts down all worker and timer threads, informs parent when threads have joined """
@@ -159,7 +172,10 @@ class MiaManager():
         self._parent.mia_stopping()
 
         if self._transfer_thread and self._transfer_thread.is_alive():
+            print("Waiting on transfer thread?")
+            print(self._transfer_thread)
             self._transfer_thread.join()
+            print("Transfer joined")
 
         self._worker_thread.join()
         self._parent.update_status("Mia has shut down.")
