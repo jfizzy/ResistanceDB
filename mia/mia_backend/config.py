@@ -9,8 +9,9 @@ class Config:
     INTERIM = None
     FILE_EXT = None
     # time between runs
-    # TODO: REMEMBER TO ADD A CHECK FOR THIS VARIABLE
     INTERVAL = 10
+    DATABASE = None
+    THREADED = False
 
     def __init__(self, logfile):
         self.logger = logfile
@@ -27,19 +28,23 @@ class Config:
         self.INTERIM = config.INTERIM
         self.FILE_EXT = config.FILE_EXT
         self.INTERVAL = config.INTERVAL
+        self.DATABASE = config.DATABASE
+        self.THREADED = config.THREADED
 
     ## TODO check input
-    def set_config(self, src_dirs, dst, converter, converter_flags, interim, file_ext, interval):
+    def set_config(self, src_dirs, dst, converter, converter_flags, interim, file_ext, interval, db, threaded):
         """
             sets config values directly
         """
         self.SRC_DIRS= [src.strip() for src in src_dirs]
         self.DST_DIR = dst.strip()
         self.CONVERTER = converter.strip()
+        self.DATABASE = db.strip()
         self.CONVERTER_FLAGS = converter_flags.strip()
         self.INTERIM = interim.strip()
         self.FILE_EXT = file_ext.strip()
         self.INTERVAL = int(interval)
+        self.THREADED = threaded
 
     def write_config(self, cfgfile):
         """
@@ -49,13 +54,30 @@ class Config:
             with open(cfgfile, "w") as cfg:
                 for src in self.SRC_DIRS:
                     cfg.write("SRC_DIR={}\n".format(src))
-                    
-                cfg.write("INTERIM={}\n".format(self.INTERIM))
-                cfg.write("DST_DIR={}\n".format(self.DST_DIR))
-                cfg.write("INTERVAL={}\n".format(self.INTERVAL))
-                cfg.write("CONVERTER_FLAGS={}\n".format(self.CONVERTER_FLAGS))
-                cfg.write("CONVERTER={}\n".format(self.CONVERTER))
-                cfg.write("EXT={}\n".format(self.FILE_EXT))
+                
+                if self.INTERIM:
+                    cfg.write("INTERIM={}\n".format(self.INTERIM))
+                
+                if self.DST_DIR:
+                    cfg.write("DST_DIR={}\n".format(self.DST_DIR))
+                
+                if self.INTERVAL:
+                    cfg.write("INTERVAL={}\n".format(self.INTERVAL))
+
+                if self.CONVERTER_FLAGS:
+                    cfg.write("CONVERTER_FLAGS={}\n".format(self.CONVERTER_FLAGS))
+
+                if self.CONVERTER:
+                    cfg.write("CONVERTER={}\n".format(self.CONVERTER))
+
+                if self.FILE_EXT:
+                    cfg.write("EXT={}\n".format(self.FILE_EXT))
+
+                if self.DATABASE:
+                    cfg.write("DATABASE={}\n".format(self.DATABASE))
+
+                if self.THREADED is not None:
+                    cfg.write("THREADED={}\n".format(self.THREADED))
         except:
             self.logger.error("Error writing config")
 
@@ -77,9 +99,11 @@ class Config:
                     # empty line
                 elif re.match('^SRC_DIR=.+$', line):
                     self.add_source_dir(line.split('=')[1])
+                elif re.match('^DATABASE=.+$', line):
+                    self.add_db(line.split('=')[1])
                 elif re.match('^FILE_EXT=.+$', line):
                     self.add_file_ext(line.split('=')[1])
-                elif re.match('^DST_DIR=((?:[\w]\:|\\\\)(\\\\[a-z_\-\s0-9\.]+)+|(.+)/([^/]+))$', line):
+                elif re.match('^DST_DIR=.+$', line):
                     # destination directory line
                     self.set_destination_dir(line.split('=')[1])
                 elif re.match('^CONVERTER=.+$', line):
@@ -95,8 +119,22 @@ class Config:
                 elif re.match('^INTERVAL=[0-9]+$', line):
                     # temporary folder
                     self.set_interval(line.split('=')[1])
+                elif re.match('^THREADED=(True|False)', line):
+                    self.set_threaded(line.split('=')[1])
+
+    def set_threaded(self, line):
+        self.logger.info(' Config >>> Threaded: {}'.format(line))
+        try:
+            self.THREADED = True if line == "True" else False
+        except:
+            self.THREADED = False
+
+    def add_db(self, line):
+        self.logger.info(' Config >>> Database: {}'.format(line))
+        self.DATABASE = line
+    
     def set_interval(self, line):
-        self.logger.info(' Config >>> {}'.format(line))
+        self.logger.info(' Config >>> Interval: {}'.format(line))
         try: 
             val = int(line)
             self.INTERVAL = val
@@ -120,11 +158,7 @@ class Config:
 
     def set_destination_dir(self, line):
         self.logger.info(' Config >>>'+line)
-        if os.path.isdir(line):
-            self.logger.info('found the dest dir')
-            self.DST_DIR = line
-            return
-        self.logger.warning('Config dest dir could not be resolved')
+        self.DST_DIR = line
 
     def set_converter_loc(self, line):
         self.logger.info(' Config >>>'+line)

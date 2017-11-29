@@ -1,0 +1,5 @@
+IF IT IS NOT WORKING CHECK THESE THINGS:
+
+Ensure that all source, interim, and destination directories actually exist (not to future self, ensure these exist before running)
+Ensure that ReAdW.exe location exists (ensure this exists before running)
+Ensure that database exists
