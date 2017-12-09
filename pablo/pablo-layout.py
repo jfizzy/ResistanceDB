@@ -123,12 +123,13 @@ def draw_full_graph():
             xaxis=dict(
                 type='category',
                 visible=True,
-                autorange=False,
+                autorange=True,
                 range=[compounds[0], compounds[len(compounds)-1]],
                 categoryorder='trace',
                 color='#444',
                 title='Compound',
-                tickmode='auto',
+                tickvals=compounds,
+                ticktext=compounds,
                 nticks=len(compounds),
                 showticklabels=True,
                 tickfont=dict(
@@ -136,8 +137,7 @@ def draw_full_graph():
                     size=12,
                     color='#444'
                 ),
-                tickangle='auto',
-                ticks=compounds,
+                tickangle=90,
                 gridwidth=1,
                 showgrid=True,
                 anchor='y',
@@ -145,8 +145,6 @@ def draw_full_graph():
                 layer='above traces',
                 constrain='range',
                 constraintoward='center',
-                tick0=compounds[0],
-                dtick=1,
             ),
             yaxis=dict(
 
