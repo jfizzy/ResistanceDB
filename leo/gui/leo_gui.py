@@ -7,6 +7,8 @@
 # WARNING! All changes made in this file will be lost!
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets
+from config.config import Config
+from leo_manager.leo_manager import LeoManager
 
 class Ui_MainWindow(object):
     ICON = os.path.join(os.path.abspath(os.path.dirname(__file__)), "leo-icon.png")
@@ -31,6 +33,8 @@ class Ui_MainWindow(object):
 
         self.systemTray.setContextMenu(systrayMenu)
         self.systemTray.show()
+        
+        self._leo_manager = LeoManager(self)
 
     def systray_open(self):
         """ """
@@ -70,18 +74,28 @@ class Ui_MainWindow(object):
 
     def parse_btn_clicked(self):
         """ """
-        minMz = self.minMZSpinBox.value()
-        maxRtDiff = self.maxRTDiffSpinBox.value()
-        minMzRatio = self.minMZRatioSpinBox.value()
+        config = Config(None)
+        config.MINMZ = self.minMZSpinBox.value()
+        config.MAXRTDIFF = self.maxRTDiffSpinBox.value()
+        config.MZRATIO = self.minMZRatioSpinBox.value()
 
-        peaksFile = self.rawPeakLineEdit.text()
-        outputFile = self.outputLocationLineEdit.text()
-        condensedFile = self.condensedOutputLineEdit.text()
+        config.CONDENSED_FILE = self.condensedOutputLineEdit.text()
+        config.PEAKS_FILE = self.rawPeakLineEdit.text()
+        config.OUTPUT_FILE = self.outputLocationLineEdit.text()
 
         print("Running with config:")
-        print("MinMz: {}\nmaxRtDiff: {}\nminMzRatio: {}\npeaksFile: {}\noutputFile: {}\ncondensedFile: {}".format(
-            minMz, maxRtDiff, minMzRatio, peaksFile, outputFile, condensedFile))
         print("Parse!!")
+
+        self._leo_manager.set_config(config)
+
+    def update_status(self, msg):
+        self.statusbar.showMessage(msg)
+
+    def show_message(self, msg, title):
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setText(msg)
+        msgBox.setWindowTitle(title)
+        msgBox.exec()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -156,7 +170,6 @@ class Ui_MainWindow(object):
         self.parseBtn.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.parseBtn.clicked.connect(self.parse_btn_clicked)        
         self.parseBtn.setObjectName("parseBtn")
-
 
         self.gridLayout.addWidget(self.parseBtn, 6, 2, 1, 1, QtCore.Qt.AlignHCenter)
         self.minMZRatioSpinBox = QtWidgets.QDoubleSpinBox(self.gridGroupBox)

@@ -44,7 +44,7 @@ class Peak:
             if len(self._intensities[organism]) > 1:
                 previous_value = None
 
-                for time, value in self._intensities[organism].items():
+                for _, value in self._intensities[organism].items():
                     if not previous_value: 
                         #this is our first iteration, previous value has not been set
                         previous_value = value

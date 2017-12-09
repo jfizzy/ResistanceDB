@@ -3,12 +3,15 @@ from decimal import Decimal
 
 class Config:
     
-    COMPOUNDSFILE = ''
+    PEAKS_FILE = ''
+    OUTPUT_FILE = ''
+    CONDENSED_FILE = ''
     MINMZ = 0
     MAXRTDIFF = 0.0
     MZRATIO = 0.3
 
     def __init__(self, cfgfile):
+        """ """
         self.cfgfile = cfgfile
 
     def read_config(self):
@@ -48,7 +51,7 @@ class Config:
         # TODO we need to check for the file in a relative location
         if os.path.isfile(line):
             print('compounds file exists')
-            self.COMPOUNDSFILE = line
+            self.PEAKS_FILE = line
             return
         print('compounds file not found')
 
