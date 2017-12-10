@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 import os
 import subprocess
+import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from config.config import Config
@@ -38,11 +39,19 @@ class Ui_MainWindow(object):
         
         self._leo_manager = LeoManager(self)
 
+    def shutdown(self):
+        print("shutting down..")
+        self.systemTray.hide()
+
     def systray_open(self):
         """ """
+        self.parent.show()
+        self.parent.showNormal()
 
     def systray_close(self):
         """ """
+        self.shutdown()
+        self.parent.shut_er_down()
 
     def systray_clicked(self, event):
         """ user clicked on system tray icon, ensure it wasn't a context menu click, otherwise show """
@@ -103,6 +112,15 @@ class Ui_MainWindow(object):
 
     def visualize_last_btn_clicked(self):
         """ send last parse off to pablo for visualization """
+        exe = sys.executable
+        path = os.path.abspath(os.path.join("..", "pablo\\plotly\\layout.py"))
+        args = [self.lastConfig.OUTPUT_FILE]
+
+        command = [exe, path] + args
+
+        print(command)
+
+        subprocess.Popen(command)#, self.lastConfig.CONDENSED_FILE))
 
     def view_last_btn_clicked(self):
         """ open explorer  """
