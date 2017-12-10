@@ -48,7 +48,7 @@ class GraphUtil:
         self.data = [go.Heatmap(z=sample_matrix.values.tolist(),
                                 x=sample_names,
                             y=compounds.values.tolist(),
-                            colorscale='YlGnBu',
+                            colorscale='RdBu',
                             )
                     ]
 
@@ -58,51 +58,44 @@ class GraphUtil:
             xaxis=dict(type='category', categoryarray=sample_names, categoryorder='array', showgrid=True),
             yaxis=dict(type='category', categoryorder='index', categoryarray=compounds.values.tolist(), dtick=1),
 
-            shapes=[{'type': 'line',
-                     'x0': 1,
-                     'y0': 0,
-                     'x1': 1,
-                     'y1': 2,
-                     'line': {
-                         'color': 'black',
-                         'width': 2,
-                     },
-                    },
-                    {
-                        'type': 'line',
-                        'x0': 2,
-                        'y0': 2,
-                        'x1': 5,
-                        'y1': 2,
-                        'line': {
-                            'color': 'black',
-                            'width': 2,
-                        },
-                    },],
+            shapes=self.draw_grid_shapes(),
 
             height=self.num_compounds * self.row_height,
-
-
         )
 
     def generate_graph(self):
         fig = go.Figure(data=self.data, layout=self.layout)
         py.plot(fig, filename='heatmap.html')
 
+    def draw_grid_shapes(self):
+        shapes_v = [self.make_vertical_line(x) for x in range(0, self.num_samples+1)[::2]]
+        shapes_h = [self.make_horizontal_line(y) for y in range(0, self.num_compounds+1)]
+        shapes_v.extend(shapes_h)
+        return shapes_v
+
     def make_vertical_line(self, x):
-        dict({'type': 'line',
-              'x0': 1,
-              'y0': 0,
-              'x1': 1,
-              'y1': 2,
+        return dict({'type': 'line',
+              'x0': x-0.5,
+              'y0': -0.5,
+              'x1': x-0.5,
+              'y1': self.num_compounds-0.5,
               'line': {
                 'color': 'black',
                 'width': 2,
             }})
-        pass
 
     def make_horizontal_line(self, y):
-        pass
+        return dict({
+            'type': 'line',
+            'x0': -0.5,
+            'y0': y-0.5,
+            'x1': self.num_samples-0.5,
+            'y1': y-0.5,
+            'line': {
+                'color': 'black',
+                'width': 2,
+            },
+        })
 
 def tbone_main(output_file, condensed_file=None):
     o_dw = DataWrapper(output_file)
