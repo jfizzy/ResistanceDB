@@ -31,7 +31,7 @@ class DataWrapper:
     def __init__(self):
         self.df = self.fetch_data(data_file)
         self.compounds = self.get_compounds(self.df)
-        self.sample_matrix = self.get_sample_matrix(self.df)
+        self.sample_matrix = abs(self.get_sample_matrix(self.df))
 
     def get_compounds_list(self):
         '''returns the compounds attribute contents as a list'''
@@ -59,7 +59,7 @@ class DataWrapper:
 
 dw = DataWrapper()
 
-def draw_sample_graph(index):
+def draw_sample_graph(index=0):
     title = dw.get_sample_names()[index]
     sample_data = dw.get_sample_lists()[index]
     compounds = dw.get_compounds_list()
@@ -91,13 +91,16 @@ def draw_full_graph():
     sample_names = dw.get_sample_names()
     samples = dw.get_sample_lists()
     compounds = dw.get_compounds_list()
+    compounds = list(sorted(set(compounds)))
+
+    print(len(compounds))
 
     figure = go.Figure(
         data=[
             go.Scatter(x=compounds,
                        y=sample,
                        text=name,
-                       mode='markers+lines',
+                       mode='markers',
                        opacity=0.7,
                        marker=dict(
                            size=15,
@@ -109,9 +112,42 @@ def draw_full_graph():
         layout=go.Layout(
             title='Sample Compound Intensities',
             showlegend=True,
+            margin=dict(
+                l=120,
+                r=120,
+                t=100,
+                b=80,
+                pad=0,
+                autoexpand=True
+            ),
             xaxis=dict(
-                ticks=compounds,
-                showticklabels=True
+                type='category',
+                visible=True,
+                autorange=True,
+                range=[compounds[0], compounds[len(compounds)-1]],
+                categoryorder='trace',
+                color='#444',
+                title='Compound',
+                tickvals=compounds,
+                ticktext=compounds,
+                nticks=len(compounds),
+                showticklabels=True,
+                tickfont=dict(
+                    family='\"Open Sans\", verdana, arial, sans-serif',
+                    size=12,
+                    color='#444'
+                ),
+                tickangle=90,
+                gridwidth=1,
+                showgrid=True,
+                anchor='y',
+                side='bottom',
+                layer='above traces',
+                constrain='range',
+                constraintoward='center',
+            ),
+            yaxis=dict(
+
             )
         )
     )
@@ -143,6 +179,10 @@ def onLoad_sample_options():
          for index,sample in enumerate(dw.get_sample_names())]
     )
     return sample_options
+
+
+def load_sample_table(sample):
+    return generate_table(sample, 100)
 
 # Set up Dashboard and create layout
 app = dash.Dash()
@@ -186,13 +226,22 @@ app.layout = html.Div([
     # Dropdown Grid
     html.Div([
         html.Div([
-            # Select Sample Dropdown
+
             html.Div([
                 html.Div('Sample', className='three columns'),
+                # Select Sample Dropdown
                 html.Div(dcc.Dropdown(
                     id='sample-selector',
                     options=onLoad_sample_options()),
-                    className='nine columns')
+                    className='nine columns'),
+                # Table Grid
+                html.Div(
+                # Sample Table
+                    html.Table(id='sample-table',
+                               children=load_sample_table(dw.sample_matrix)
+                               ),
+                    className='twelve columns',
+                )
             ]),
         ], className='six columns'),
 
@@ -204,14 +253,6 @@ app.layout = html.Div([
                 id='sample-graph'
             )
         ], className='six columns'),
-
-    # Table Grid
-    html.Div(
-        # Sample Table
-        html.Table(id='sample-table'),
-        className='twelve columns'
-    )
-
     ], className='twelve columns'),
 ])
 
@@ -235,15 +276,6 @@ def static_file(path):
 )
 def load_sample_graph(sample):
     return draw_sample_graph(sample)
-
-@app.callback(
-    Output(component_id='sample-table', component_property='children'),
-    [
-        Input(component_id='sample-selector', component_property='value')
-    ]
-)
-def load_sample_table(sample):
-    return dw.get_sample_lists()[sample]
 
 # start Flask server
 if __name__ == '__main__':
