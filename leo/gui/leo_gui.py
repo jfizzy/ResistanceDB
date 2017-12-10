@@ -6,6 +6,8 @@
 #
 # WARNING! All changes made in this file will be lost!
 import os
+import subprocess
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from config.config import Config
 from leo_manager.leo_manager import LeoManager
@@ -83,21 +85,56 @@ class Ui_MainWindow(object):
         config.PEAKS_FILE = self.rawPeakLineEdit.text()
         config.OUTPUT_FILE = self.outputLocationLineEdit.text()
 
-        print("Running with config:")
-        print("Parse!!")
+        self._leo_manager.run_leo(config)
 
-        self._leo_manager.set_config(config)
+    def finished_parse(self, msg, config, write_success, condense_success):
+        """ callback for leo to indicate a finished parse """
+
+        # if leo has a message, something went wrong in parse
+        if msg:
+            self.show_message(msg, "Error in parse")
+
+            if write_success or condense_success:
+                reply == self.ask_yes_no("One or more parses was successful, open save location of successful parse?", "Partial Success")
+                if reply == QtWidgets.QMessageBox.Yes:
+                    location = config.OUTPUT_FILE if write_success else config.CONDENSED_FILE
+                    subprocess.Popen(r'explorer /select,"{}"'.format(location))
+        else:
+            reply = self.ask_yes_no("Parse successful. Would you like to open the save location of the output file?", "Success")
+            if reply == QtWidgets.QMessageBox.Yes:
+                if config.CONDENSED_FILE:
+                    dir1 = config.OUTPUT_FILE.rsplit("\\", 1)[0]
+                    dir2 = config.CONDENSED_FILE.rsplit("\\", 1)[0]
+
+                    print(dir1 + " ---- " + dir2)
+                    if dir1 == dir2:
+                        subprocess.Popen(r'explorer /select,"{}"'.format(config.OUTPUT_FILE))
+                    else:
+                        subprocess.Popen(r'explorer /select,"{}"'.format(config.OUTPUT_FILE))
+                        subprocess.Popen(r'explorer /select,"{}"'.format(config.CONDENSED_FILE))
+                else:
+                    subprocess.Popen(r'explorer /select,"{}"'.format(config.OUTPUT_FILE))
+            
+
+    def ask_yes_no(self, msg, title):
+        return QtWidgets.QMessageBox.question(self.parent,
+                    title,
+                    msg, QtWidgets.QMessageBox.Yes,
+                    QtWidgets.QMessageBox.No)
 
     def update_status(self, msg):
+        """ updates the status barwith specified message """
         self.statusbar.showMessage(msg)
 
     def show_message(self, msg, title):
-        msgBox = QtWidgets.QMessageBox()
-        msgBox.setText(msg)
-        msgBox.setWindowTitle(title)
-        msgBox.exec()
+        """ shows an information message to the user """
+        msg_box = QtWidgets.QMessageBox()
+        msg_box.setText(msg)
+        msg_box.setWindowTitle(title)
+        msg_box.exec()
 
     def setupUi(self, MainWindow):
+        """ setup the UI  """
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(625, 382)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -162,7 +199,7 @@ class Ui_MainWindow(object):
         self.maxRTDiffSpinBox = QtWidgets.QDoubleSpinBox(self.gridGroupBox)
         self.maxRTDiffSpinBox.setMaximum(20.0)
         self.maxRTDiffSpinBox.setSingleStep(0.1)
-        self.maxRTDiffSpinBox.setProperty("value", 2.0)
+        self.maxRTDiffSpinBox.setProperty("value", 0.5)
         self.maxRTDiffSpinBox.setObjectName("maxRTDiffSpinBox")
         self.gridLayout.addWidget(self.maxRTDiffSpinBox, 2, 2, 1, 1)
         
@@ -205,6 +242,7 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.leoTitleLabel.setFont(font)
         self.leoTitleLabel.setObjectName("leoTitleLabel")
+        self.leoTitleLabel.setMaximumSize(QtCore.QSize(16777215, 50))
         self.gridLayout_2.addWidget(self.leoTitleLabel, 1, 1, 1, 1)
 
         #main title lines

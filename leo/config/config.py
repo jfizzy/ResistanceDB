@@ -2,7 +2,7 @@ import re, os
 from decimal import Decimal
 
 class Config:
-    
+    """ config class for  """
     PEAKS_FILE = ''
     OUTPUT_FILE = ''
     CONDENSED_FILE = ''
