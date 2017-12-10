@@ -45,19 +45,18 @@ class GraphUtil:
         self.num_compounds = len(compounds.values.tolist())
         self.num_samples = len(sample_names)
 
-        self.data = [go.Heatmap(z=sample_matrix.T.values.tolist(),
-                                x=compounds.values.tolist(),
-                            y=sample_names,
+        self.data = [go.Heatmap(z=sample_matrix.values.tolist(),
+                                x=sample_names,
+                            y=compounds.values.tolist(),
                             colorscale='Viridis',
                             )
                     ]
 
-    def generate_layout(self):
         self.layout = go.Layout(
             title='Sample Intensities',
-            xaxis=dict(ticks='', nticks=self.num_compounds, ticklen=10),
-            yaxis=dict(ticks=''),
             autosize=True,
+            xaxis=dict(type='category', categoryarray=sample_names, categoryorder='array', showgrid=True),
+            yaxis=dict(type='category', categoryorder='index', categoryarray=compounds.values.tolist(), dtick=1),
         )
 
     def generate_graph(self):
@@ -68,7 +67,6 @@ def tbone_main():
     dw = DataWrapper()
     gu = GraphUtil()
     gu.generate_trace(dw.compounds, dw.get_sample_names(), dw.get_sample_matrix())
-    gu.generate_layout()
     gu.generate_graph()
 
 if __name__ == '__main__':
