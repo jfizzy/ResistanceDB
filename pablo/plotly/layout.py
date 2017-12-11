@@ -3,6 +3,7 @@ import plotly.offline as py
 import plotly.graph_objs as go
 import plotly.figure_factory as ff
 import pandas as pd
+import os
 
 import numpy as np
 
@@ -230,36 +231,36 @@ class GraphUtil:
             yaxis=dict(type='range', title='MZ'),
         )
 
-def tbone_main(output_file, condensed_file=None):
+def tbone_main(output_file, output_dir, condensed_file=None, condensed_dir=None):
     o_dw = DataWrapper(output_file)
 
     gu = GraphUtil()
     gu.generate_heatmap_trace(o_dw.compounds, o_dw.get_sample_names(), o_dw.get_sample_matrix())
-    gu.generate_graph('output_heatmap.html')
+    gu.generate_graph(os.path.join(output_dir, 'output_heatmap.html'))
 
     gu.generate_scatter_plot(o_dw.compounds, o_dw.get_sample_names(), o_dw.get_sample_matrix())
-    gu.generate_graph('output_scatterplot.html')
+    gu.generate_graph(os.path.join(output_dir, 'output_scatterplot.html'))
 
     gu.generate_3dsurface_trace(o_dw.compounds, o_dw.get_sample_names(), o_dw.get_sample_matrix())
-    gu.generate_graph('output_3dsurface.html')
+    gu.generate_graph(os.path.join(output_dir, 'output_3dsurface.html'))
 
-    if condensed_file is not None:
+    if condensed_file is not None and condensed_dir is not None:
         c_dw = DataWrapper(condensed_file)
         gu = GraphUtil()
 
         gu.generate_annotated_heatmap_trace(c_dw.compounds, c_dw.get_sample_names(), c_dw.get_sample_matrix())
-        gu.generate_graph('condensed_heatmap.html')
+        gu.generate_graph(os.path.join(condensed_dir, 'condensed_heatmap.html'))
 
         gu.generate_scatter_plot(c_dw.compounds, c_dw.get_sample_names(), c_dw.get_sample_matrix())
-        gu.generate_graph('condensed_scatterplot.html')
+        gu.generate_graph(os.path.join(condensed_dir, 'condensed_scatterplot.html'))
 
         gu.generate_3dsurface_trace(c_dw.compounds, c_dw.get_sample_names(), c_dw.get_sample_matrix())
-        gu.generate_graph('condensed_3dsurface.html')
+        gu.generate_graph(os.path.join(condensed_dir, 'condensed_3dsurface.html'))
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:
-        tbone_main(sys.argv[1], sys.argv[2])
+        tbone_main(sys.argv[1], os.path.dirname(sys.argv[1]), sys.argv[2], os.path.dirname(sys.argv[2]))
     elif len(sys.argv) == 2:
-        tbone_main(sys.argv[1])
+        tbone_main(sys.argv[1], sys.argv[2])
     else:
         exit(0)
