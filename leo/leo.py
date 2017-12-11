@@ -15,10 +15,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #self._shutdown = False
         self.setWindowIcon(QtGui.QIcon(self.ICON))
 
-    # def shut_er_down(self):
-    #      self._shutdown = True
-    #      self.parent.setQuitOnLastWindowClosed(True)
-    #      QtWidgets.QMainWindow.close(self)
+    def shut_er_down(self):
+        QtWidgets.QMainWindow.close(self)
+
+    def closeEvent(self, event):
+        self.main_window.shutdown()
 
 
 def main():

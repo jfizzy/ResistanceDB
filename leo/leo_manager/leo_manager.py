@@ -10,15 +10,42 @@ class LeoManager():
         """ """
         self._parent = parent
 
-    def set_config(self, config):
+    def run_leo(self, config):
         """ """
         msg, valid = self.check_config(config)
-        if valid:
-            print("valid!")
-            pass
-        else:
-            print("invalid!!")
+        read_success = True
+        write_success = True
+        condense_success = True
+
+        if not valid:
             self._parent.show_message(msg, "Invalid Config")
+        else:
+            peak_parser = PeakParser(config)
+            msg = ""
+            try:
+                peaks = peak_parser.parse_peaks_file()
+            except:
+                msg += "Failed to open and parse peaks file. The file may be in use, or does not exist.\n"
+                read_success = False
+            
+            if read_success and peaks:
+                try:
+                    peak_parser.write_peaks_csv(peaks)
+                except:
+                    write_success = False
+                    msg += "Failed to write filtered peaks to file. The file may be in use.\n"
+
+                if (config.CONDENSED_FILE):
+                    try:
+                        peak_parser.write_condensed_csv(peaks)
+                    except:
+                        condense_success = False
+                        msg += "Failed to write condensed peaks to file. The file may be in use.\n"
+                
+                self._parent.finished_parse(msg, config, write_success, condense_success)
+            else:
+                self._parent.show_message(msg, "Failed to Load Peaks")
+
 
     def check_config(self, config):
         """ """

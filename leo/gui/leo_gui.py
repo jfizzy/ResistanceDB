@@ -6,6 +6,9 @@
 #
 # WARNING! All changes made in this file will be lost!
 import os
+import subprocess
+import sys
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from config.config import Config
 from leo_manager.leo_manager import LeoManager
@@ -36,11 +39,19 @@ class Ui_MainWindow(object):
         
         self._leo_manager = LeoManager(self)
 
+    def shutdown(self):
+        print("shutting down..")
+        self.systemTray.hide()
+
     def systray_open(self):
         """ """
+        self.parent.show()
+        self.parent.showNormal()
 
     def systray_close(self):
         """ """
+        self.shutdown()
+        self.parent.shut_er_down()
 
     def systray_clicked(self, event):
         """ user clicked on system tray icon, ensure it wasn't a context menu click, otherwise show """
@@ -83,23 +94,83 @@ class Ui_MainWindow(object):
         config.PEAKS_FILE = self.rawPeakLineEdit.text()
         config.OUTPUT_FILE = self.outputLocationLineEdit.text()
 
-        print("Running with config:")
-        print("Parse!!")
+        self._leo_manager.run_leo(config)
 
-        self._leo_manager.set_config(config)
+    def finished_parse(self, msg, config, write_success, condense_success):
+        """ callback for leo to indicate a finished parse """
+
+        # if leo has a message, something went wrong in parse
+        if msg:
+            self.show_message(msg, "Error in parse.")
+        else:
+            self.show_message("Leo has succesfully written to specified files.", "Parse successful.")
+
+        if write_success or condense_success:
+            self.viewLastBtn.setEnabled(True)
+            self.visualizeBtn.setEnabled(True)
+            self.lastConfig = config
+
+    def visualize_last_btn_clicked(self):
+        """ send last parse off to pablo for visualization """
+        exe = sys.executable
+        path = os.path.abspath(os.path.join("..", "pablo\\plotly\\layout.py"))
+        args = [self.lastConfig.OUTPUT_FILE]
+
+        command = [exe, path] + args
+
+        print(command)
+
+        subprocess.Popen(command)#, self.lastConfig.CONDENSED_FILE))
+
+    def view_last_btn_clicked(self):
+        """ open explorer  """
+        if self.lastConfig.CONDENSED_FILE and self.lastConfig.OUTPUT_FILE:
+            dir1 = self.lastConfig.OUTPUT_FILE.rsplit("\\", 1)[0]
+            dir2 = self.lastConfig.CONDENSED_FILE.rsplit("\\", 1)[0]
+
+            print(dir1 + " ---- " + dir2)
+            if dir1 == dir2:
+                self.os_file_open(self.lastConfig.OUTPUT_FILE)
+            else:
+                self.os_file_open(self.lastConfig.OUTPUT_FILE)
+                self.os_file_open(self.lastConfig.CONDENSED_FILE)
+        elif self.lastConfig.OUTPUT_FILE:
+            self.os_file_open(self.lastConfig.OUTPUT_FILE)
+
+    def os_file_open(self, file_location):
+        """ handles opening a file in windows and mac """
+        if os.name == 'posix':
+            command = ["open", "-R", "{}".format(file_location)]
+        elif os.name == 'nt':
+            command = r'explorer /select,"{}"'.format(file_location)
+        else:
+            return
+
+        print(command)
+
+        subprocess.Popen(command)
+
+    def ask_yes_no(self, msg, title):
+        return QtWidgets.QMessageBox.question(self.parent,
+                    title,
+                    msg, QtWidgets.QMessageBox.Yes,
+                    QtWidgets.QMessageBox.No)
 
     def update_status(self, msg):
+        """ updates the status barwith specified message """
         self.statusbar.showMessage(msg)
 
     def show_message(self, msg, title):
-        msgBox = QtWidgets.QMessageBox()
-        msgBox.setText(msg)
-        msgBox.setWindowTitle(title)
-        msgBox.exec()
+        """ shows an information message to the user """
+        msg_box = QtWidgets.QMessageBox()
+        msg_box.setText(msg)
+        msg_box.setWindowTitle(title)
+        msg_box.exec()
 
     def setupUi(self, MainWindow):
+        """ setup the UI  """
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(625, 382)
+        MainWindow.resize(809, 413)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
@@ -162,16 +233,16 @@ class Ui_MainWindow(object):
         self.maxRTDiffSpinBox = QtWidgets.QDoubleSpinBox(self.gridGroupBox)
         self.maxRTDiffSpinBox.setMaximum(20.0)
         self.maxRTDiffSpinBox.setSingleStep(0.1)
-        self.maxRTDiffSpinBox.setProperty("value", 2.0)
+        self.maxRTDiffSpinBox.setProperty("value", 0.5)
         self.maxRTDiffSpinBox.setObjectName("maxRTDiffSpinBox")
         self.gridLayout.addWidget(self.maxRTDiffSpinBox, 2, 2, 1, 1)
         
-        self.parseBtn = QtWidgets.QPushButton(self.gridGroupBox)
-        self.parseBtn.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.parseBtn.clicked.connect(self.parse_btn_clicked)        
-        self.parseBtn.setObjectName("parseBtn")
-
-        self.gridLayout.addWidget(self.parseBtn, 6, 2, 1, 1, QtCore.Qt.AlignHCenter)
+        #self.parseBtn = QtWidgets.QPushButton(self.gridGroupBox)
+        #self.parseBtn.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        #self.parseBtn.clicked.connect(self.parse_btn_clicked)        
+        #self.parseBtn.setObjectName("parseBtn")
+        #self.gridLayout.addWidget(self.parseBtn, 6, 2, 1, 1, QtCore.Qt.AlignHCenter)
+        
         self.minMZRatioSpinBox = QtWidgets.QDoubleSpinBox(self.gridGroupBox)
         self.minMZRatioSpinBox.setMaximum(1.0)
         self.minMZRatioSpinBox.setSingleStep(0.01)
@@ -205,6 +276,7 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.leoTitleLabel.setFont(font)
         self.leoTitleLabel.setObjectName("leoTitleLabel")
+        self.leoTitleLabel.setMaximumSize(QtCore.QSize(16777215, 50))
         self.gridLayout_2.addWidget(self.leoTitleLabel, 1, 1, 1, 1)
 
         #main title lines
@@ -218,6 +290,31 @@ class Ui_MainWindow(object):
         self.line_3.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_3.setObjectName("line_3")
         self.gridLayout_2.addWidget(self.line_3, 0, 1, 1, 1)
+
+        self.btnWidget = QtWidgets.QWidget(self.gridGroupBox)
+        self.btnWidget.setObjectName("btnWidget")
+        self.gridLayout_3 = QtWidgets.QGridLayout(self.btnWidget)
+        self.gridLayout_3.setObjectName("gridLayout_3")
+
+        self.viewLastBtn = QtWidgets.QPushButton(self.btnWidget)
+        self.viewLastBtn.clicked.connect(self.view_last_btn_clicked)
+        self.viewLastBtn.setEnabled(False)
+        self.viewLastBtn.setObjectName("viewLastBtn")
+        self.gridLayout_3.addWidget(self.viewLastBtn, 0, 1, 1, 1)
+
+        self.visualizeBtn = QtWidgets.QPushButton(self.btnWidget)
+        self.visualizeBtn.setEnabled(False)
+        self.visualizeBtn.clicked.connect(self.visualize_last_btn_clicked)
+        self.visualizeBtn.setObjectName("visualizeBtn")
+        self.gridLayout_3.addWidget(self.visualizeBtn, 0, 0, 1, 1)
+
+        self.parseBtn = QtWidgets.QPushButton(self.btnWidget)
+        self.parseBtn.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.parseBtn.clicked.connect(self.parse_btn_clicked)  
+        self.parseBtn.setObjectName("parseBtn")
+        self.gridLayout_3.addWidget(self.parseBtn, 0, 2, 1, 1)
+        self.gridLayout.addWidget(self.btnWidget, 6, 2, 2, 1)
+        self.gridLayout_2.addWidget(self.gridGroupBox, 3, 1, 1, 1)
 
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -250,3 +347,5 @@ class Ui_MainWindow(object):
         self.minMZSpinBox.setToolTip(_translate("MainWindow", "Minimum intensity/"))
         #self.mainTitleLabel.setText(_translate("MainWindow", "Leo"))
         self.leoTitleLabel.setText(_translate("MainWindow", "Leo"))
+        self.viewLastBtn.setText(_translate("MainWindow", "View Last Parse"))
+        self.visualizeBtn.setText(_translate("MainWindow", "Visualize Last Parse"))
