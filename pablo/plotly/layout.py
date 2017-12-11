@@ -56,7 +56,7 @@ class GraphUtil:
                     ]
 
         self.layout = go.Layout(
-            title='Sample Intensities',
+            title='Sample Heatmap Comparisons',
             autosize=True,
             xaxis=dict(type='category', categoryarray=sample_names, categoryorder='array', showgrid=True),
             yaxis=dict(type='category', categoryorder='index', categoryarray=compounds.values.tolist(), dtick=1),
@@ -95,7 +95,7 @@ class GraphUtil:
                     ]
 
         self.layout = go.Layout(
-            title='Sample Intensities',
+            title='Sample Production/Consumption Comparisons',
             autosize=True,
             xaxis=dict(type='category', categoryarray=sample_names, categoryorder='array', showgrid=True),
             yaxis=dict(type='category', categoryorder='index', categoryarray=compounds.values.tolist(), dtick=1),
@@ -123,12 +123,13 @@ class GraphUtil:
         self.layout = go.Layout(
             scene=dict(
                 xaxis=dict(type='category', categoryarray=sample_names, categoryorder='array', dtick=1, title='Sample'),
-                yaxis=dict(type='category', categoryorder='index', categoryarray=compounds.values.tolist(), dtick=1, title='Compound ({})'.format(self.num_compounds)),
+                yaxis=dict(type='category', categoryorder='index', categoryarray=compounds.values.tolist(), dtick=4, title='Compound ({})'.format(self.num_compounds)),
                 zaxis=dict(title='MZ')
             ),
             margin=dict(
             r=20, l=10,
-            b=10, t=10)
+            b=10, t=10
+            ),
         )
 
 
@@ -234,18 +235,26 @@ def tbone_main(output_file, condensed_file=None):
 
     gu = GraphUtil()
     gu.generate_heatmap_trace(o_dw.compounds, o_dw.get_sample_names(), o_dw.get_sample_matrix())
-    gu.generate_graph('heatmap.html')
+    gu.generate_graph('output_heatmap.html')
+
     gu.generate_scatter_plot(o_dw.compounds, o_dw.get_sample_names(), o_dw.get_sample_matrix())
-    gu.generate_graph('scatterplot.html')
+    gu.generate_graph('output_scatterplot.html')
+
+    gu.generate_3dsurface_trace(o_dw.compounds, o_dw.get_sample_names(), o_dw.get_sample_matrix())
+    gu.generate_graph('output_3dsurface.html')
 
     if condensed_file is not None:
         c_dw = DataWrapper(condensed_file)
         gu = GraphUtil()
-        gu.generate_3dsurface_trace(c_dw.compounds, c_dw.get_sample_names(), c_dw.get_sample_matrix())
-        gu.generate_graph('3dsurface.html')
 
         gu.generate_annotated_heatmap_trace(c_dw.compounds, c_dw.get_sample_names(), c_dw.get_sample_matrix())
         gu.generate_graph('condensed_heatmap.html')
+
+        gu.generate_scatter_plot(c_dw.compounds, c_dw.get_sample_names(), c_dw.get_sample_matrix())
+        gu.generate_graph('condensed_scatterplot.html')
+
+        gu.generate_3dsurface_trace(c_dw.compounds, c_dw.get_sample_names(), c_dw.get_sample_matrix())
+        gu.generate_graph('condensed_3dsurface.html')
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:
