@@ -114,7 +114,7 @@ class Ui_MainWindow(object):
         """ send last parse off to pablo for visualization """
         exe = sys.executable
         path = os.path.abspath(os.path.join("..", "pablo\\plotly\\layout.py"))
-        args = [self.lastConfig.OUTPUT_FILE]
+        args = [self.lastConfig.OUTPUT_FILE, self.lastConfig.CONDENSED_FILE]
 
         command = [exe, path] + args
 
