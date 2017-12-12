@@ -107,7 +107,10 @@ class FileMover:
                 print("dst: {} .... src: {}".format(dst, src))
                 self.create_dirs(dst)
                 #currently formatted for 7zip
-                command = "{} {} {} {}".format(self._readw_loc, " ".join(self._flags), src, dst_filename)   
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                command = "\"{}\" {} \"{}\" \"{}\"".format(self._readw_loc, self._flags, src, dst_filename, startupinfo=startupinfo)
+                print(command)   
                 subprocess.check_call(command, shell=False)
 
                 #insert into database

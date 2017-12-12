@@ -1,3 +1,5 @@
+#! C:\Users\Tyrone\code\ResistanceDB\mia\.venv\Scripts\pythonw.exe
+
 from PyQt5 import QtWidgets, QtGui
 from gui.gui import Ui_MainWindow
 import os
