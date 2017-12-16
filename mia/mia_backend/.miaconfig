@@ -1,8 +1,8 @@
-SRC_DIR=D:\Presentation 2\Source
 SRC_DIR=D:\Presentation\Source2
+SRC_DIR=D:\Presentation 2\Source
 INTERIM=C:\Users\Tyrone\school\Interim
 DST_DIR=C:\Users\Tyrone\school\Destination
-INTERVAL=24
+INTERVAL=30
 CONVERTER_FLAGS=--compress --mzXML
 CONVERTER=C:\Users\Tyrone\school\Converter\ReAdW.exe
 EXT=raw
