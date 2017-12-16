@@ -35,7 +35,9 @@ class DataWrapper:
         return self.df['compound']
 
     def get_sample_matrix(self):
-        return self.df.ix[:,6:]
+        sample = self.df.ix[:,6:]
+        sample = (sample - sample.mean()) / (sample.max() - sample.min())
+        return sample
 
 class GraphUtil:
     def __init__(self):
@@ -261,6 +263,6 @@ if __name__ == '__main__':
     if len(sys.argv) == 3:
         tbone_main(sys.argv[1], os.path.dirname(sys.argv[1]), sys.argv[2], os.path.dirname(sys.argv[2]))
     elif len(sys.argv) == 2:
-        tbone_main(sys.argv[1], sys.argv[2])
+        tbone_main(sys.argv[1], os.path.dirname(sys.argv[1]))
     else:
         exit(0)

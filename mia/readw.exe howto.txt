@@ -1,7 +1,0 @@
-Do the install fuckery
-If Xcalibur fails, kill it and restart.
-Enable MSMQ Server 
-	Control Panel -> Programs -> Programs and Features
-		->Microsoft Message Queue (MSMQ) Server)
-regsvr32 C:\Program Files (x86)\Thermo\Foundation\XRawfile2.dll
-readw.exe should now work
