@@ -12,6 +12,8 @@ def get_files_by_ext(src, dst, ext, end_ext):
 
     if not ext_re.startswith('.'):
         ext_re = '.' + ext_re
+		
+	print("getting files")
 
     directory_files = [f for f in os.walk(src)]
     for directory_tuple in directory_files:
@@ -26,5 +28,6 @@ def get_files_by_ext(src, dst, ext, end_ext):
 
                 good_files.append((os.path.join(directory_tuple[0], file),
                                    os.path.join(dst, f_renamed)))
+	print("good files")
 
     return good_files

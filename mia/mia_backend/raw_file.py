@@ -101,6 +101,9 @@ class RawFile():
         """ returns the full path to the interim including filename """
         return os.path.join(self._interim, self._new_name)
 
+    def get_mzxml_interim(self):
+        return os.path.join(self._interim, self._new_name.replace('.raw', '.mzXML'))
+
     def get_full_file_dest(self):
         """ returns the full path to the destination including the new file name """
         return os.path.join(self._dst, self._new_name.replace('.raw', '.mzXML'))

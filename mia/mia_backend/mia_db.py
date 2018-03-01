@@ -60,6 +60,7 @@ class MiaDB():
         row = cursor.fetchone()
         connection.close()
         if row:
+            print(row)
             return True
 
         return False

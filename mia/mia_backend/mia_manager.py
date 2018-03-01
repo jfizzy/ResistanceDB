@@ -27,6 +27,7 @@ class MiaManager():
     def __init__(self, parent):
         print(self.LOG_FILE)
         print(self.CONFIG)
+        self._db_lock = threading.Lock()
         self._parent = parent
         self._logger = EZLogger(logger_name="MiaLogger",
                                 log_filename=self.LOG_FILE,
@@ -91,7 +92,9 @@ class MiaManager():
             do work again.
         """
 
+        print("in transfer...")
         self._config_lock.acquire()
+        print("got lock")
         file_mover = FileMover(self._config.SRC_DIRS,
                                self._config.INTERIM,
                                self._config.DST_DIR,
@@ -99,8 +102,10 @@ class MiaManager():
                                self._config.CONVERTER,
                                self._config.CONVERTER_FLAGS,
                                self._logger,
-                               self._config.DATABASE)
+                               self._config.DATABASE,
+                               self._db_lock)
 
+        print("file mover made")
         #number of threads is max_threads if threaded, otherwise 1 (synchronous)
         num_threads = self._max_threads if self._config.THREADED else 1
 
@@ -112,6 +117,7 @@ class MiaManager():
 
         # while we are still running and have files to move
         while self._running and file_mover.files_left():
+            print("parsing a file")
             if self._config.THREADED:
                 for i in range(0, num_threads):
                     if file_mover.files_left() and self._running:

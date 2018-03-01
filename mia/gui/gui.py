@@ -96,7 +96,7 @@ class Ui_MainWindow(object):
 
         interval = self.intervalSlider.value()
         ext = 'raw'#'raw'
-        flags = "--compress --mzXML"
+        flags = "--centroid --mzXML"
         threaded = self.parallelCheckBox.isChecked()
 
         config.set_config(srcs, dst, exe, flags, interim, ext, interval, database, threaded)
@@ -203,7 +203,7 @@ class Ui_MainWindow(object):
 
     def mia_reset_btn_clicked(self):
         """ reset mia with new settings """
-        self._manager.stop(self.mia_stopped_for_reset)   
+        self._manager.stop(self.mia_stopped_for_reset)       
 
     def mia_stopped_for_reset(self):
         """ simulate start button click """
@@ -218,7 +218,7 @@ class Ui_MainWindow(object):
         self.stopMiaBtn.setEnabled(False)
         self.restartMiaBtn.setEnabled(False)
 
-        QtWidgets.qApp.processEvents()
+        QtWidgets.qApp.processEvents() 
 
     def mia_stopped(self):
         """ callback for mia backend

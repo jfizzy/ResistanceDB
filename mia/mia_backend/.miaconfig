@@ -1,10 +1,11 @@
-SRC_DIR=D:\Presentation\Source2
-SRC_DIR=D:\Presentation 2\Source
-INTERIM=C:\Users\Tyrone\school\Interim
-DST_DIR=C:\Users\Tyrone\school\Destination
+SRC_DIR=Y:\TSQ
+SRC_DIR=Z:\QEB
+SRC_DIR=X:\QEHF
+INTERIM=C:\mia\temp
+DST_DIR=Q:\ms-data
 INTERVAL=30
 CONVERTER_FLAGS=--compress --mzXML
-CONVERTER=C:\Users\Tyrone\school\Converter\ReAdW.exe
+CONVERTER=C:\Program Files\ReAdW.exe
 EXT=raw
-DATABASE=C:\Users\Tyrone\code\ResistanceDB\mia\files.db
+DATABASE=Q:\MiaFileLog.db
 THREADED=True

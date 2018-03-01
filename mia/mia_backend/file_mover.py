@@ -2,15 +2,16 @@
 import os
 import queue
 import subprocess
-from shutil import copyfile
+from shutil import copyfile, move
 import time
+
 
 from mia_backend.raw_file import RawFile, RawFileException
 from mia_backend.mia_db import MiaDB
 
 class FileMover:
     """ Moves files from source to destination of type file_ext """
-    def __init__(self, srcs, interim, dest, file_ext, readw_loc, flags, logger, database):
+    def __init__(self, srcs, interim, dest, file_ext, readw_loc, flags, logger, database, lock):
         """ Constructor for FileMover type
             end_file_ext is optional
         """
@@ -20,6 +21,7 @@ class FileMover:
         self._interim = interim
         self._readw_loc = readw_loc
         self._flags = flags
+        self._lock = lock
 
         if database:
             self._database = MiaDB(database)
@@ -34,6 +36,8 @@ class FileMover:
 
         self._dest_dir = dest
         self._file_ext = file_ext
+		
+        print("checking directories....")
 
         self.check_dirs_exist()
 
@@ -73,15 +77,24 @@ class FileMover:
                         )
                         process_completed = self.parse_file(file)
 
+                        print(process_completed)
                         # clean up file, if process completed correctly
                         if process_completed:
                             try:
                                 tmp = file.get_full_file_interim()
+                                mzxml = file.get_mzxml_interim()
                                 dst = file.get_dest()
                                 name = file.get_new_name()
-                                os.rename(tmp, os.path.join(dst, name))
+                                print(tmp + "\n" + mzxml)
+                                print(os.path.join(dst, file.get_dest_filename()))
+                                print(os.path.join(dst, name))
+                                move(mzxml, os.path.join(dst, file.get_dest_filename()))
+                                move(tmp, os.path.join(dst, name))
+                                os.remove(mzxml)
+                                os.remove(tmp)
                             except Exception as ex:
-                                self._logger.error("Unable to move temporary file: {} - {}".format(tmp, str(ex)))
+                                print("Unable to move or remove temporary file: {} - {}".format(tmp, str(ex)))
+                                self._logger.error("Unable to move or remove temporary file: {} - {}".format(tmp, str(ex)))
                     else:
                         print("Not parsing file. Exists in database")
                         #self._logger.warning("Did not parse file {}\nDatabase not initialized.".format(file.get_src_filename()))
@@ -101,30 +114,33 @@ class FileMover:
         if file:
             src = file.get_full_file_interim()
             dst = file.get_dest()
-            dst_filename = file.get_full_file_dest()
+            dst_filename = file.get_mzxml_interim() #file.get_full_file_dest()
 
             try:
                 print("dst: {} .... src: {}".format(dst, src))
                 self.create_dirs(dst)
                 #currently formatted for 7zip
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                command = "\"{}\" {} \"{}\" \"{}\"".format(self._readw_loc, self._flags, src, dst_filename, startupinfo=startupinfo)
-                print(command)   
-                subprocess.check_call(command, shell=False)
+                CREATE_NO_WINDOW = 0x08000000
+                command = "{} {} {} {}".format(self._readw_loc, self._flags, src, dst_filename)
+                print(command)
+                subprocess.check_call(command, shell=False, creationflags=CREATE_NO_WINDOW)
 
                 #insert into database
                 if self._database:
+                    self._lock.acquire()
                     self._database.insert(file)
+                    self._lock.release()
             except subprocess.CalledProcessError as ex:
                 self._logger.error("Unable to convert file: {} - {}".format(src, str(ex)))
                 try:
                     #readw failed, try to remove the stub file that may have been created
                     print("Subprocess failed to finish, removing stub mzXML file and interim raw file")
-                    os.remove(dst_filename)
+                    print(src)
                     os.remove(src)
-                except:
-                    self._logger.error("ReAdW failed and mia couldn't remove stub file: {}".format(dst_filename))
+                    os.remove(dst_filename)
+                    
+                except Exception as ex:
+                    self._logger.error("ReAdW failed and mia couldn't remove stub file: {}: {}".format(dst_filename, str(ex)))
                 finally:
                     process_complete = False
 
@@ -158,12 +174,17 @@ class FileMover:
 
         if not ext_re.startswith('.'):
             ext_re = '.' + ext_re
-
+        print("Getting files")
         for src in self._source_dirs:
-            directory_files = [f for f in os.walk(src)]
+            src_delimited = src
+            src_delimited.replace("\\", "\\\\")
+            print(src_delimited)
+            directory_files = os.walk(src_delimited)
+			#[f for f in os.walk(src_delimited)]
             for directory_tuple in directory_files:
                 for file in directory_tuple[2]:
                     if file.endswith(ext_re):
+                        print(src + " " + directory_tuple[0] +"\\" + file)
                         # if the file has the extension, add to good_file list which is a tuple of
                         # (current directory, destination directory)
                         try:
@@ -174,6 +195,7 @@ class FileMover:
                         except RawFileException as ex:
                             self._logger.error(str(ex))
 
+        print(good_files)
         return good_files
 
     def check_dirs_exist(self):
